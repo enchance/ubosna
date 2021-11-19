@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Response, Query
+from fastapi import APIRouter, Response, Query, Path
 
 from app import settings as s
 
@@ -13,6 +13,6 @@ async def index(_: Response):
     return s.TESTDATA
 
 
-@devroutes.get('/foo')
-async def foo(q: Optional[list] = Query(['foo', 'bar'], deprecated=True)):
-    return q
+@devroutes.get('/foo/{age}')
+async def foo(age: int = Path(..., title='This is Mei-mei', gt=5, example='24')):
+    return age
