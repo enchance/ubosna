@@ -3,17 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.starlette import register_tortoise
 
 from app.settings.db import DATABASE
-
+from app.routes import devroutes
 
 
 def get_app() -> FastAPI:
-    app = FastAPI()
+    app = FastAPI()     # noqa
     
-    # Routes
+    # Routes: Main
     
-    # Fixtures
+    # Routes: Fixtures
     
-    # Dev only
+    # Routes: Dev
+    app.include_router(devroutes, prefix='/dev', tags=['Development'])
     
     # Tortoise
     register_tortoise(app, config=DATABASE, generate_schemas=True)

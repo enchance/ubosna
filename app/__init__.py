@@ -1,20 +1,19 @@
 import logging, pytz
 from fastapi.logger import logger
 # from datetime import datetime
+from icecream.icecream import IceCreamDebugger
 
-# from .exceptions import *
-from .settings import *
+from .exceptions import *
+from .settings import settings  # Not "s" let the user do the renaming
 # from .cache import *
 # from .app import *
 
-from icecream.icecream import IceCreamDebugger
-from app.settings import settings as s
 
 
 
 # Icecream
 ic = IceCreamDebugger()
-ic.enabled = s.DEBUG
+ic.enabled = settings.DEBUG
 
 
 # Logger

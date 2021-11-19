@@ -12,7 +12,7 @@ class Settings:
         env = env.lower()
         if env in ['local', 'dev', 'development']:
             return LocalSettings()
-        elif env == 'staging':
+        elif env in ['staging', 'stag']:
             return StagingSettings()
         else:
             return ProductionSettings()
