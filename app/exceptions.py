@@ -5,8 +5,8 @@ from app import settings as s
 
 
 
-GENERIC_400 = 400               # If you don't know what to send
-UNPROCESSABLE_422 = 422     # I understand it but am not allowing it (e.g. invalid values, etc.)
+GENERIC_400 = 400               # I don't understand the data so I don't know what to do
+UNPROCESSABLE_422 = 422         # I understand it but am not allowing it (non-unique, invalid, etc.)
 PERMISSION_DENIED_403 = 403     # You can't do that it's bad and you should feel bad
 SERVICE_UNAVAILABLE_503 = 503   # Your db exploded, server burned down, etc.
 
@@ -24,8 +24,8 @@ class BaseAppError(HTTPException):
 
 class GenericError(BaseAppError):
     """I don't understand what you're trying to do."""
-    message = "I DON'T UNDERSTAND WHAT YOU WANT ME TO DO"
-    
+    pass
+
     
 class FalsyDataError(BaseAppError):
     """Data is falsy such as '', [], None, {}, set(), False, etc.."""
