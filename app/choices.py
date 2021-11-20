@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class GenderChoices(Enum):
@@ -18,3 +18,8 @@ class PermChoices(Enum):
     user = 'user'
     group = 'group'
     
+
+class TaxoTypeChoices(IntEnum):
+    generic = 1
+    category = 2
+    tag = 3
