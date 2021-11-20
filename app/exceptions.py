@@ -1,14 +1,24 @@
-from fastapi import HTTPException
 from typing import Optional, Any, Dict
+from fastapi import HTTPException, status
 
 from app import settings as s
 
-
-
-GENERIC_400 = 400               # I don't understand the data so I don't know what to do
-UNPROCESSABLE_422 = 422         # I understand it but am not allowing it (non-unique, invalid, etc.)
-PERMISSION_DENIED_403 = 403     # You can't do that it's bad and you should feel bad
-SERVICE_UNAVAILABLE_503 = 503   # Your db exploded, server burned down, etc.
+"""
+200: Successful request
+201: Successful creation
+204: Successful update or delete; nothing needs to be returned
+400: I don't understand the data so I don't know what to do
+422: I understand it but am not allowing it (non-unique, blocked data, etc.)
+403: No permission; you can't do that it's bad and you should feel bad
+503: Your db exploded, server burned down or something
+"""
+OK_200 = 200            # Read
+CREATED_201 = 201       # Create
+NO_CONTENT_204 = 204    # Update, Delete
+GENERIC_400 = 400
+UNPROCESSABLE_422 = 422
+FORBIDDEN_NO_PERM_403 = 403
+SERVICE_UNAVAILABLE_503 = 503
 
 
 class BaseAppError(HTTPException):
@@ -41,8 +51,8 @@ class ServiceError(BaseAppError):
 
 class PermissionDenied(BaseAppError):
     """User doesn't have permission to do something."""
-    message = 'INSUFFICIENT PERMISSIONS'
-    status_code = PERMISSION_DENIED_403
+    message = "YOU'RE NOT ALLOWED TO DO THAT"
+    status_code = FORBIDDEN_NO_PERM_403
 
 
 class NotFoundError(BaseAppError):
