@@ -29,9 +29,35 @@ CREATE TABLE IF NOT EXISTS "auth_account" (
     "zipcode" VARCHAR(20) NOT NULL  DEFAULT '',
     "timezone" VARCHAR(10) NOT NULL  DEFAULT '+08:00',
     "currency" VARCHAR(5) NOT NULL  DEFAULT 'PHP',
-    "metadata" JSONB NOT NULL
+    "metadata" JSONB
 );
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_email_3074e7" ON "auth_account" ("email");
+CREATE TABLE IF NOT EXISTS "core_media" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "deleted_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "url" VARCHAR(256) NOT NULL,
+    "filename" VARCHAR(199) NOT NULL,
+    "width" SMALLINT,
+    "height" SMALLINT,
+    "size" SMALLINT,
+    "status" VARCHAR(20) NOT NULL,
+    "metadata" JSONB,
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "core_option" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "deleted_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "name" VARCHAR(20) NOT NULL,
+    "value" VARCHAR(191) NOT NULL,
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "admin_only" BOOL NOT NULL  DEFAULT False,
+    "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    CONSTRAINT "uid_core_option_name_792d37" UNIQUE ("name", "account_id")
+);
 CREATE TABLE IF NOT EXISTS "core_taxo" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
@@ -47,18 +73,17 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "parent_id" INT REFERENCES "core_taxo" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_core_taxo_name_69eee2" UNIQUE ("name", "taxotype")
+    CONSTRAINT "uid_core_taxo_name_1601f6" UNIQUE ("name", "account_id", "taxotype")
 );
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
 CREATE TABLE IF NOT EXISTS "auth_group" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "name" VARCHAR(191) NOT NULL UNIQUE,
-    "summary" TEXT NOT NULL,
+    "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS "idx_auth_group_name_eb59d9" ON "auth_group" ("name");
 CREATE TABLE IF NOT EXISTS "auth_account_groups" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
@@ -69,8 +94,8 @@ CREATE TABLE IF NOT EXISTS "auth_account_groups" (
 );
 CREATE TABLE IF NOT EXISTS "auth_perm" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "name" VARCHAR(191) NOT NULL UNIQUE,
     "code" VARCHAR(30) NOT NULL UNIQUE,
+    "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE

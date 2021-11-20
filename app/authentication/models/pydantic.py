@@ -1,5 +1,7 @@
 from fastapi_users import models
-from tortoise import fields as f
+from tortoise.contrib.pydantic import PydanticModel
+
+from .account import Account
 
 
 class User(models.BaseUser):
@@ -15,4 +17,7 @@ class UserUpdate(models.BaseUserUpdate):
 
 
 class UserDB(User, models.BaseUserDB):
+    # class Config:
+    #     orm_mode = True
+    #     orig_model = Account
     pass

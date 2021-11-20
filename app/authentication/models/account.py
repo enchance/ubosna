@@ -3,7 +3,7 @@ from tortoise import models, fields as f
 from limeutils import modstr
 
 from app import settings as s
-from app.authentication.models.core import DTmixin, SharedMixin
+from app.authentication.models.common import DTmixin, SharedMixin
 
 
 class Account(DTmixin, TortoiseBaseUserModel):
@@ -22,7 +22,7 @@ class Account(DTmixin, TortoiseBaseUserModel):
     zipcode = f.CharField(max_length=20, default='')
     timezone = f.CharField(max_length=10, default=s.USER_TIMEZONE)
     currency = f.CharField(max_length=5, default=s.CURRENCY)
-    metadata = f.JSONField(default={})
+    metadata = f.JSONField(null=True)
     
     class Meta:
         table = 'auth_account'
@@ -71,14 +71,15 @@ class GroupPerms(models.Model):
 
 # INCOMPLETE: Work in progress...
 class Perm(SharedMixin, models.Model):
-    name = f.CharField(max_length=191, unique=True)
     code = f.CharField(max_length=30, unique=True)
+    description = f.CharField(max_length=191, default='')
     author = f.ForeignKeyField('models.Account', related_name='author_perms')
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
     
     class Meta:
         table = 'auth_perm'
+        order = ['code']
         # TODO: Add manager
         
     def __str__(self):
@@ -87,14 +88,15 @@ class Perm(SharedMixin, models.Model):
 
 # INCOMPLETE: Work in progress...
 class Group(SharedMixin, models.Model):
-    name = f.CharField(max_length=191, index=True, unique=True)
-    summary = f.TextField(default='')
+    name = f.CharField(max_length=191, unique=True)
+    description = f.CharField(max_length=191, default='')
     author = f.ForeignKeyField('models.Account', related_name='author_groups')
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
     
     class Meta:
         table = 'auth_group'
+        order = ['name']
         # TODO: Add manager
         
     def __str__(self):

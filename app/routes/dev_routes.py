@@ -17,7 +17,6 @@ async def foo(age: int = Path(..., ge=5, title='This is Mei-mei')) -> int:
     return age
 
 
-
 @devroutes.post("/cookie/")
 def create_cookie(res: Response):
     res.set_cookie(key="fakesession", value="fake-cookie-session-value")

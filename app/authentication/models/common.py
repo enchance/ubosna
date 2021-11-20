@@ -39,7 +39,7 @@ class Taxo(DTmixin, SharedMixin, models.Model):
     name = f.CharField(max_length=50)
     display = f.CharField(max_length=50, default='')
     description = f.CharField(max_length=191, default='')
-    taxotype = f.SmallIntField(default=1, index=True)
+    taxotype = f.SmallIntField(default=1, index=True)       # TaxoTypeChoices
     sort = f.SmallIntField(default=100)
     parent = f.ForeignKeyField('models.Taxo', related_name='parent_taxos', null=True)
 
@@ -50,8 +50,45 @@ class Taxo(DTmixin, SharedMixin, models.Model):
 
     class Meta:
         table = 'core_taxo'
-        unique_together = (('name', 'taxotype'),)
+        unique_together = ('name', 'account_id', 'taxotype')
+        ordering = ['sort', 'name']
         # TODO: Add manager
 
     def __str__(self):
         return modstr(self, 'name')
+
+
+class Option(DTmixin, SharedMixin, models.Model):
+    name = f.CharField(max_length=20)
+    value = f.CharField(max_length=191)
+    is_active = f.BooleanField(default=True)
+    admin_only = f.BooleanField(default=False)
+    account = f.ForeignKeyField('models.Account', related_name='account_options', null=True)
+    
+    class Meta:
+        table = 'core_option'
+        ordering = ['name']
+        unique_together = ('name', 'account_id')
+        # TODO: Add manager
+    
+    def __str__(self):
+        return modstr(self, 'name')
+
+
+class Media(DTmixin, SharedMixin, models.Model):
+    url = f.CharField(max_length=256)
+    filename = f.CharField(max_length=199)
+    width = f.SmallIntField(null=True)
+    height = f.SmallIntField(null=True)
+    size = f.SmallIntField(null=True)
+    status = f.CharField(max_length=20)         # Set original, modified, delete
+    
+    metadata = f.JSONField(null=True)
+    account = f.ForeignKeyField('models.Account', related_name='account_media')
+    
+    class Meta:
+        table = 'core_media'
+        # TODO: Add manager
+    
+    def __str__(self):
+        return modstr(self, 'filename')
