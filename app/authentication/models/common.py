@@ -1,17 +1,18 @@
 import pytz
 from typing import Optional, List
-from tortoise import fields as f, models
+from tortoise import fields as f, models, manager
 from limeutils import modstr
 
+from .manager import CuratorManager
 
 
-class DTmixin(object):
-    deleted_at = f.DatetimeField(null=True)
+
+class DTMixin(object):
+    deleted_at = f.DatetimeField(null=True, index=True)
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
 
 
-# INCOMPLETE: Work in progress...
 class SharedMixin(object):
     # TODO: See if there is a pydantic solution
     # def to_dict(self, *, exclude: Optional[List[str]] = None, only: Optional[List[str]] = None):
@@ -35,60 +36,86 @@ class SharedMixin(object):
         await self.save(update_fields=['deleted_at'])               # noqa
 
 
-class Taxo(DTmixin, SharedMixin, models.Model):
+class Taxo(DTMixin, SharedMixin, models.Model):
     name = f.CharField(max_length=50)
     display = f.CharField(max_length=50, default='')
     description = f.CharField(max_length=191, default='')
-    taxotype = f.SmallIntField(default=1, index=True)       # TaxoTypeChoices
     sort = f.SmallIntField(default=100)
     parent = f.ForeignKeyField('models.Taxo', related_name='parent_taxos', null=True)
+    taxotype = f.SmallIntField(default=1, index=True)       # TaxoTypeChoices
 
     is_active = f.BooleanField(default=True)
     is_global = f.BooleanField(default=False)
     account = f.ForeignKeyField('models.Account', related_name='account_taxos', null=True)
     author = f.ForeignKeyField('models.Account', related_name='author_taxos')
 
+    allrows = manager.Manager()
     class Meta:
         table = 'core_taxo'
-        unique_together = ('name', 'account_id', 'taxotype')
+        unique_together = ('taxotype', 'account_id')
         ordering = ['sort', 'name']
-        # TODO: Add manager
+        manager = CuratorManager()
 
     def __str__(self):
         return modstr(self, 'name')
+    
+    @classmethod
+    async def get_and_cache(cls, taxotype: int, name: str):
+        """Get data and force save it to cache."""
+        pass
+        # INCOMPLETE: Work in progress...
 
 
-class Option(DTmixin, SharedMixin, models.Model):
+class Option(DTMixin, SharedMixin, models.Model):
     name = f.CharField(max_length=20)
     value = f.CharField(max_length=191)
-    is_active = f.BooleanField(default=True)
-    admin_only = f.BooleanField(default=False)
-    account = f.ForeignKeyField('models.Account', related_name='account_options', null=True)
     
+    admin_only = f.BooleanField(default=False)
+    is_active = f.BooleanField(default=True)
+    account = f.ForeignKeyField('models.Account', related_name='account_options', null=True)
+
+    allrows = manager.Manager()
     class Meta:
         table = 'core_option'
         ordering = ['name']
-        unique_together = ('name', 'account_id')
-        # TODO: Add manager
+        manager = CuratorManager()
     
     def __str__(self):
         return modstr(self, 'name')
 
+    @classmethod
+    async def get_and_cache(cls, taxotype: int, name: str):
+        """Get data and force save it to cache."""
+        pass
+        # INCOMPLETE: Work in progress...
 
-class Media(DTmixin, SharedMixin, models.Model):
-    url = f.CharField(max_length=256)
+
+class Media(DTMixin, SharedMixin, models.Model):
+    url = f.CharField(max_length=256, unique=True)
     filename = f.CharField(max_length=199)
     width = f.SmallIntField(null=True)
     height = f.SmallIntField(null=True)
+    label = f.CharField(max_length=191, default='')
     size = f.SmallIntField(null=True)
     status = f.CharField(max_length=20)         # Set original, modified, delete
+    mediatype = f.SmallIntField(default=1, index=True)
     
-    metadata = f.JSONField(null=True)
+    is_active = f.BooleanField(default=True)
     account = f.ForeignKeyField('models.Account', related_name='account_media')
-    
+    metadata = f.JSONField(null=True)
+
+    allrows = manager.Manager()
     class Meta:
         table = 'core_media'
-        # TODO: Add manager
+        unique_together = ('mediatype', 'account_id')
+        ordering = ['url']
+        manager = CuratorManager()
     
     def __str__(self):
         return modstr(self, 'filename')
+
+    @classmethod
+    async def get_and_cache(cls, taxotype: int, name: str):
+        """Get data and force save it to cache."""
+        pass
+        # INCOMPLETE: Work in progress...

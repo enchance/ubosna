@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS "auth_account" (
     "lastname" VARCHAR(191) NOT NULL  DEFAULT '',
     "civil" VARCHAR(20) NOT NULL  DEFAULT '',
     "bday" DATE,
-    "avatar" VARCHAR(255) NOT NULL  DEFAULT '',
     "status" VARCHAR(20) NOT NULL  DEFAULT '',
     "bio" VARCHAR(191) NOT NULL  DEFAULT '',
     "country" VARCHAR(2) NOT NULL  DEFAULT '',
@@ -31,21 +30,28 @@ CREATE TABLE IF NOT EXISTS "auth_account" (
     "currency" VARCHAR(5) NOT NULL  DEFAULT 'PHP',
     "metadata" JSONB
 );
+CREATE INDEX IF NOT EXISTS "idx_auth_accoun_deleted_112596" ON "auth_account" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_email_3074e7" ON "auth_account" ("email");
 CREATE TABLE IF NOT EXISTS "core_media" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "url" VARCHAR(256) NOT NULL,
+    "url" VARCHAR(256) NOT NULL UNIQUE,
     "filename" VARCHAR(199) NOT NULL,
     "width" SMALLINT,
     "height" SMALLINT,
+    "label" VARCHAR(191) NOT NULL  DEFAULT '',
     "size" SMALLINT,
     "status" VARCHAR(20) NOT NULL,
+    "mediatype" SMALLINT NOT NULL  DEFAULT 1,
+    "is_active" BOOL NOT NULL  DEFAULT True,
     "metadata" JSONB,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    CONSTRAINT "uid_core_media_mediaty_ab6f11" UNIQUE ("mediatype", "account_id")
 );
+CREATE INDEX IF NOT EXISTS "idx_core_media_deleted_becbda" ON "core_media" ("deleted_at");
+CREATE INDEX IF NOT EXISTS "idx_core_media_mediaty_e27c92" ON "core_media" ("mediatype");
 CREATE TABLE IF NOT EXISTS "core_option" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
@@ -53,11 +59,11 @@ CREATE TABLE IF NOT EXISTS "core_option" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(20) NOT NULL,
     "value" VARCHAR(191) NOT NULL,
-    "is_active" BOOL NOT NULL  DEFAULT True,
     "admin_only" BOOL NOT NULL  DEFAULT False,
-    "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_core_option_name_792d37" UNIQUE ("name", "account_id")
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS "idx_core_option_deleted_51a5b3" ON "core_option" ("deleted_at");
 CREATE TABLE IF NOT EXISTS "core_taxo" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
@@ -66,15 +72,16 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
     "name" VARCHAR(50) NOT NULL,
     "display" VARCHAR(50) NOT NULL  DEFAULT '',
     "description" VARCHAR(191) NOT NULL  DEFAULT '',
-    "taxotype" SMALLINT NOT NULL  DEFAULT 1,
     "sort" SMALLINT NOT NULL  DEFAULT 100,
+    "taxotype" SMALLINT NOT NULL  DEFAULT 1,
     "is_active" BOOL NOT NULL  DEFAULT True,
     "is_global" BOOL NOT NULL  DEFAULT False,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "parent_id" INT REFERENCES "core_taxo" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_core_taxo_name_1601f6" UNIQUE ("name", "account_id", "taxotype")
+    CONSTRAINT "uid_core_taxo_taxotyp_1e3242" UNIQUE ("taxotype", "account_id")
 );
+CREATE INDEX IF NOT EXISTS "idx_core_taxo_deleted_f8c4a3" ON "core_taxo" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
 CREATE TABLE IF NOT EXISTS "auth_group" (
     "id" SERIAL NOT NULL PRIMARY KEY,

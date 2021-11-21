@@ -26,3 +26,9 @@ class TaxoTypeChoices(IntEnum):
 
 class OptionTypeChoices(IntEnum):
     generic = 1
+    
+    
+class MediaTypeChoices(IntEnum):
+    avatar = 1
+    gallery = 2
+    others = 3
