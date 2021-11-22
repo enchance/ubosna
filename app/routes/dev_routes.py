@@ -5,19 +5,17 @@ from app import settings as s
 
 
 
-devroutes = APIRouter()
+devrouter = APIRouter()
 
-@devroutes.get('/')
+@devrouter.get('/')
 async def index(_: Response):
     return s.TESTDATA
 
-
-@devroutes.get('/foo/{age}')
+@devrouter.get('/foo/{age}')
 async def foo(age: int = Path(..., ge=5, title='This is Mei-mei')) -> int:
     return age
 
-
-@devroutes.post("/cookie/")
+@devrouter.post("/cookie/")
 def create_cookie(res: Response):
     res.set_cookie(key="fakesession", value="fake-cookie-session-value")
     res.set_cookie(key="fruit", value="apple")

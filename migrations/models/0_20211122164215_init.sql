@@ -32,6 +32,52 @@ CREATE TABLE IF NOT EXISTS "auth_account" (
 );
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_deleted_112596" ON "auth_account" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_email_3074e7" ON "auth_account" ("email");
+CREATE TABLE IF NOT EXISTS "auth_group" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "name" VARCHAR(191) NOT NULL UNIQUE,
+    "description" VARCHAR(191) NOT NULL  DEFAULT '',
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "auth_account_groups" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "auth_perm" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "code" VARCHAR(30) NOT NULL UNIQUE,
+    "description" VARCHAR(191) NOT NULL  DEFAULT '',
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "auth_account_perms" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "auth_group_perms" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "group_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "auth_token" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "token" VARCHAR(128) NOT NULL UNIQUE,
+    "expires" TIMESTAMPTZ NOT NULL,
+    "is_blacklisted" BOOL NOT NULL  DEFAULT False,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "idx_auth_token_expires_0eb57d" ON "auth_token" ("expires");
 CREATE TABLE IF NOT EXISTS "core_media" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
@@ -81,49 +127,3 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
 );
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_deleted_f8c4a3" ON "core_taxo" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
-CREATE TABLE IF NOT EXISTS "auth_group" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "name" VARCHAR(191) NOT NULL UNIQUE,
-    "description" VARCHAR(191) NOT NULL  DEFAULT '',
-    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "auth_account_groups" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "auth_perm" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "code" VARCHAR(30) NOT NULL UNIQUE,
-    "description" VARCHAR(191) NOT NULL  DEFAULT '',
-    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "auth_account_perms" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "auth_group_perms" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "group_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
-);
-CREATE TABLE IF NOT EXISTS "auth_token" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "token" VARCHAR(128) NOT NULL UNIQUE,
-    "expires" TIMESTAMPTZ NOT NULL,
-    "is_blacklisted" BOOL NOT NULL  DEFAULT False,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS "idx_auth_token_expires_0eb57d" ON "auth_token" ("expires");

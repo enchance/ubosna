@@ -9,13 +9,21 @@ from .account import Account
 
 
 class User(models.BaseUser):
-    username: Optional[str] = Field('', le=50)
-    display: Optional[str] = Field('', le=50)
-    timezone: Optional[str] = Field('', le=10)
-    currency: Optional[str] = Field('', le=5)
+    """
+    Data you want visible in the User pydantic model.
+    """
+    username: str
+    # display: str
+    # timezone: str
+    # currency: str
+    # pass
 
 
 class UserCreate(models.BaseUserCreate):
+    """
+    Data pydantic will take from the form.
+    """
+    username: Optional[str]
     @validator('password')
     def valid_password(cls, v: str):
         if len(v) < s.PASSWORD_MIN:
@@ -27,21 +35,22 @@ class UserUpdate(models.BaseUserUpdate):
     pass
 
 
-class AccountDB(User, models.BaseUserDB):
+class UserDB(User, models.BaseUserDB):
     """
-    Represents the actual Account table. Use this to parse Account.
     """
-    firstname: Optional[str] = Field('', le=191)
-    midname: Optional[str] = Field('', le=191)
-    lastname: Optional[str] = Field('', le=191)
-    civil: Optional[str] = Field('', le=20)
-    bday: Optional[date] = None
-    status: Optional[str] = Field('', le=20)
-    country: Optional[str] = Field('', le=2)
-    bio: Optional[str] = Field('', le=191)
-    zipcode: Optional[str] = Field('', le=20)
-    metadata: Optional[dict] = None
-    
+    # username: Optional[str] = ''
+    # firstname: Optional[str] = ''
+    # midname: Optional[str] = ''
+    # lastname: Optional[str] = ''
+    # civil: Optional[str] = ''
+    # bday: Optional[date] = None
+    # status: Optional[str] = ''
+    # country: Optional[str] = ''
+    # bio: Optional[str] = ''
+    # zipcode: Optional[str] = ''
+    # metadata: Optional[dict] = None
+    #
     # class Config:
     #     orm_mode = True
     #     orig_model = Account
+    pass
