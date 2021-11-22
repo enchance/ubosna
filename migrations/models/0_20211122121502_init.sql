@@ -47,8 +47,7 @@ CREATE TABLE IF NOT EXISTS "core_media" (
     "mediatype" SMALLINT NOT NULL  DEFAULT 1,
     "is_active" BOOL NOT NULL  DEFAULT True,
     "metadata" JSONB,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_core_media_mediaty_ab6f11" UNIQUE ("mediatype", "account_id")
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_core_media_deleted_becbda" ON "core_media" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_media_mediaty_e27c92" ON "core_media" ("mediatype");
@@ -78,8 +77,7 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
     "is_global" BOOL NOT NULL  DEFAULT False,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "parent_id" INT REFERENCES "core_taxo" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_core_taxo_taxotyp_1e3242" UNIQUE ("taxotype", "account_id")
+    "parent_id" INT REFERENCES "core_taxo" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_deleted_f8c4a3" ON "core_taxo" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
@@ -96,8 +94,7 @@ CREATE TABLE IF NOT EXISTS "auth_account_groups" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_auth_accoun_account_5c16f9" UNIQUE ("account_id", "group_id")
+    "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "auth_perm" (
     "id" SERIAL NOT NULL PRIMARY KEY,
@@ -112,16 +109,14 @@ CREATE TABLE IF NOT EXISTS "auth_account_perms" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_auth_accoun_account_57d88a" UNIQUE ("account_id", "perm_id")
+    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "auth_group_perms" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "group_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE,
-    CONSTRAINT "uid_auth_group__group_i_03e28e" UNIQUE ("group_id", "perm_id")
+    "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "auth_token" (
     "id" SERIAL NOT NULL PRIMARY KEY,

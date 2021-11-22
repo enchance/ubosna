@@ -3,11 +3,11 @@ from tortoise import models, fields as f, manager
 from limeutils import modstr
 
 from app import settings as s
-from app.authentication.models.common import DTMixin, SharedMixin
+from app.authentication.models.common import DTBaseModel, SharedMixin
 from .manager import CuratorManager
 
 
-class Account(DTMixin, TortoiseBaseUserModel):
+class Account(DTBaseModel, TortoiseBaseUserModel):
     username = f.CharField(max_length=50, default='')
     display = f.CharField(max_length=50, default='')
     firstname = f.CharField(max_length=191, default='')
@@ -25,6 +25,7 @@ class Account(DTMixin, TortoiseBaseUserModel):
     metadata = f.JSONField(null=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_account'
         manager = CuratorManager()
@@ -47,9 +48,9 @@ class AccountGroups(models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_account_groups'
-        unique_together = (('account_id', 'group_id'),)
         manager = CuratorManager()
 
     def __str__(self):
@@ -62,9 +63,9 @@ class AccountPerms(models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_account_perms'
-        unique_together = (('account_id', 'perm_id'),)
         manager = CuratorManager()
 
     def __str__(self):
@@ -78,9 +79,9 @@ class GroupPerms(models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_group_perms'
-        unique_together = (('group_id', 'perm_id'),)
         manager = CuratorManager()
         
     def __str__(self):
@@ -96,6 +97,7 @@ class Perm(SharedMixin, models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_perm'
         ordering = ['code']
@@ -114,6 +116,7 @@ class Group(SharedMixin, models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_group'
         ordering = ['name']
@@ -131,6 +134,7 @@ class Token(SharedMixin, models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'auth_token'
         ordering = ['created_at']

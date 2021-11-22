@@ -7,10 +7,13 @@ from .manager import CuratorManager
 
 
 
-class DTMixin(object):
+class DTBaseModel(models.Model):
     deleted_at = f.DatetimeField(null=True, index=True)
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
+    
+    class Meta:
+        abstract = True
 
 
 class SharedMixin(object):
@@ -36,7 +39,7 @@ class SharedMixin(object):
         await self.save(update_fields=['deleted_at'])               # noqa
 
 
-class Taxo(DTMixin, SharedMixin, models.Model):
+class Taxo(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=50)
     display = f.CharField(max_length=50, default='')
     description = f.CharField(max_length=191, default='')
@@ -50,9 +53,9 @@ class Taxo(DTMixin, SharedMixin, models.Model):
     author = f.ForeignKeyField('models.Account', related_name='author_taxos')
 
     og = manager.Manager()
+    
     class Meta:
         table = 'core_taxo'
-        unique_together = ('taxotype', 'account_id')
         ordering = ['sort', 'name']
         manager = CuratorManager()
 
@@ -66,7 +69,7 @@ class Taxo(DTMixin, SharedMixin, models.Model):
         # INCOMPLETE: Work in progress...
 
 
-class Option(DTMixin, SharedMixin, models.Model):
+class Option(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=20)
     value = f.CharField(max_length=191)
     
@@ -75,6 +78,7 @@ class Option(DTMixin, SharedMixin, models.Model):
     account = f.ForeignKeyField('models.Account', related_name='account_options', null=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'core_option'
         ordering = ['name']
@@ -90,7 +94,7 @@ class Option(DTMixin, SharedMixin, models.Model):
         # INCOMPLETE: Work in progress...
 
 
-class Media(DTMixin, SharedMixin, models.Model):
+class Media(SharedMixin, DTBaseModel):
     url = f.CharField(max_length=256, unique=True)
     filename = f.CharField(max_length=199)
     width = f.SmallIntField(null=True)
@@ -105,9 +109,9 @@ class Media(DTMixin, SharedMixin, models.Model):
     metadata = f.JSONField(null=True)
 
     og = manager.Manager()
+    
     class Meta:
         table = 'core_media'
-        unique_together = ('mediatype', 'account_id')
         ordering = ['url']
         manager = CuratorManager()
     
