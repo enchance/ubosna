@@ -49,7 +49,7 @@ class Taxo(DTMixin, SharedMixin, models.Model):
     account = f.ForeignKeyField('models.Account', related_name='account_taxos', null=True)
     author = f.ForeignKeyField('models.Account', related_name='author_taxos')
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'core_taxo'
         unique_together = ('taxotype', 'account_id')
@@ -74,7 +74,7 @@ class Option(DTMixin, SharedMixin, models.Model):
     is_active = f.BooleanField(default=True)
     account = f.ForeignKeyField('models.Account', related_name='account_options', null=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'core_option'
         ordering = ['name']
@@ -104,7 +104,7 @@ class Media(DTMixin, SharedMixin, models.Model):
     account = f.ForeignKeyField('models.Account', related_name='account_media')
     metadata = f.JSONField(null=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'core_media'
         unique_together = ('mediatype', 'account_id')

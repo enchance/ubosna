@@ -24,7 +24,7 @@ class Account(DTMixin, TortoiseBaseUserModel):
     currency = f.CharField(max_length=5, default=s.CURRENCY)
     metadata = f.JSONField(null=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_account'
         manager = CuratorManager()
@@ -35,6 +35,9 @@ class Account(DTMixin, TortoiseBaseUserModel):
     @property
     def fullname(self):
         return f'{self.firstname} {self.lastname}'.strip()
+    
+    async def to_dict(self):
+        pass
 
 
 class AccountGroups(models.Model):
@@ -43,7 +46,7 @@ class AccountGroups(models.Model):
     author = f.ForeignKeyField('models.Account', related_name='author_accountgroups')
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_account_groups'
         unique_together = (('account_id', 'group_id'),)
@@ -58,7 +61,7 @@ class AccountPerms(models.Model):
     author = f.ForeignKeyField('models.Account', related_name='author_accountperms')
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_account_perms'
         unique_together = (('account_id', 'perm_id'),)
@@ -74,7 +77,7 @@ class GroupPerms(models.Model):
     author = f.ForeignKeyField('models.Account', related_name='author_groupperms')
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_group_perms'
         unique_together = (('group_id', 'perm_id'),)
@@ -92,7 +95,7 @@ class Perm(SharedMixin, models.Model):
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_perm'
         ordering = ['code']
@@ -110,7 +113,7 @@ class Group(SharedMixin, models.Model):
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_group'
         ordering = ['name']
@@ -127,7 +130,7 @@ class Token(SharedMixin, models.Model):
     account = f.ForeignKeyField('models.Account', related_name='account_tokens')
     created_at = f.DatetimeField(auto_now_add=True)
 
-    allrows = manager.Manager()
+    og = manager.Manager()
     class Meta:
         table = 'auth_token'
         ordering = ['created_at']
