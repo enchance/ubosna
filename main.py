@@ -15,11 +15,7 @@ def get_app() -> FastAPI:
     app.include_router(authrouter, prefix='/auth', tags=['Authentication'])
     # app.include_router(fusers.get_auth_router(jwtauth), prefix='/auth', tags=['Authentication'])
     # app.include_router(fusers.get_register_router(jwtauth), prefix='/auth', tags=['Authentication'])
-    app.include_router(
-        fusers.get_verify_router(),
-        prefix="/auth",
-        tags=["auth"],
-    )
+    # app.include_router(fusers.get_verify_router(), prefix="/auth", tags=["Authentication"])
     
     # Others
     app.include_router(fixturerouter, prefix='/fx', tags=['Fixtures'])

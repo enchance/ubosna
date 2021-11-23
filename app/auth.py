@@ -24,16 +24,14 @@ def setup_account(account: Account, user: UserDB):
 async def setup_groups(account: Account):
     # Get the ids of the default groups
     # Add groups to the user
-    pass
+    return
 
 
 # INCOMPLETE: Work in progress...
 async def setup_options(account: Account):
-    # ll = []
-    # for name, val in options_dict['user'].items():
-    #     ll.append(Option(name=name, value=val, user=usermod))
-    # await Option.bulk_create(ll)
-    pass
+    # Read list of options
+    # Assign options to account with default values
+    return
 
 
 class UserManager(BaseUserManager[UserCreate, UserDB]):
@@ -54,14 +52,12 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
         # Generate verification token which triggers on_after_request_verify()
         await self.request_verify(user, request)
 
-    # async def on_after_forgot_password(
-    #         self, user: UserDB, token: str, request: Optional[Request] = None
-    # ):
+    # async def on_after_forgot_password(self, user: UserDB, token: str, request: Optional[Request] = None):
     #     ic(f"User {user.id} has forgot their password. Reset token: {token}")
 
     async def on_after_request_verify(self, user: UserDB, token: str, request: Optional[Request] = None):
         # ic(f"Verification requested for user {user.id}. Verification token: {token}")
-        ic('Send the email to verify.')
+        ic('Send verification email to user now.')
 
 
 async def get_user_db():

@@ -14,30 +14,12 @@ authrouter = APIRouter()
 authrouter.include_router(fusers.get_register_router())
 
 
-# @authrouter.post("/register", response_model=User, status_code=201, name="register:register")
-# async def register(request: Request, user: UserCreate, user_manager=Depends(get_user_manager)):
-#     try:
-#         created_user = await user_manager.create(user, safe=True, request=request)
-#     except UserAlreadyExists:
-#         raise HTTPException(status_code=400, detail=ErrorCode.REGISTER_USER_ALREADY_EXISTS)
-#     except InvalidPasswordException as e:
-#         raise HTTPException(
-#             status_code=400,
-#             detail={
-#                 "code": ErrorCode.REGISTER_INVALID_PASSWORD,
-#                 "reason": e.reason,
-#             },
-#         )
-#     return created_user
-
-
 @authrouter.post("/login", name="auth:login")
 async def login(
         response: Response, credentials: OAuth2PasswordRequestForm = Depends(),
         user_manager: BaseUserManager[models.UC, models.UD] = Depends(get_user_manager),
 ):
     user = await user_manager.authenticate(credentials)
-
     if user is None or not user.is_active:
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_BAD_CREDENTIALS)
     if s.REQUIRES_VERIFICATION and not user.is_verified:
