@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS "auth_group" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "auth_account_groups" (
+CREATE TABLE IF NOT EXISTS "auth_xaccountgroups" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
@@ -55,14 +55,14 @@ CREATE TABLE IF NOT EXISTS "auth_perm" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "auth_account_perms" (
+CREATE TABLE IF NOT EXISTS "auth_xaccountperms" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "auth_group_perms" (
+CREATE TABLE IF NOT EXISTS "auth_xgroupperms" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
@@ -127,3 +127,33 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
 );
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_deleted_f8c4a3" ON "core_taxo" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
+CREATE TABLE IF NOT EXISTS "trades_broker" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "deleted_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "name" VARCHAR(191) NOT NULL,
+    "short" VARCHAR(10) NOT NULL  DEFAULT '',
+    "brokerno" INT,
+    "logo" VARCHAR(255) NOT NULL  DEFAULT '',
+    "site" VARCHAR(255) NOT NULL  DEFAULT '',
+    "currency" VARCHAR(5) NOT NULL  DEFAULT 'USD',
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "metadata" JSONB,
+    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "idx_trades_brok_deleted_7af817" ON "trades_broker" ("deleted_at");
+CREATE TABLE IF NOT EXISTS "trades_xaccountbrokers" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "deleted_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "wallet" DECIMAL(19,8) NOT NULL  DEFAULT 0,
+    "traded" DECIMAL(19,8) NOT NULL  DEFAULT 0,
+    "status" VARCHAR(20) NOT NULL  DEFAULT 'active',
+    "is_primary" BOOL NOT NULL  DEFAULT False,
+    "metadata" JSONB,
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "broker_id" INT NOT NULL REFERENCES "trades_broker" ("id") ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "idx_trades_xacc_deleted_a95d16" ON "trades_xaccountbrokers" ("deleted_at");

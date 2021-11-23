@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi_users.db import TortoiseBaseUserModel
 from tortoise import models, fields as f, manager
 from limeutils import modstr
@@ -21,8 +22,19 @@ class Account(DTBaseModel, TortoiseBaseUserModel):
     country = f.CharField(max_length=2, default='')
     zipcode = f.CharField(max_length=20, default='')
     timezone = f.CharField(max_length=10, default=s.USER_TIMEZONE)
-    currency = f.CharField(max_length=5, default=s.CURRENCY)
+    currency = f.CharField(max_length=5, default=s.CURRENCY_ACCOUNT)
     metadata = f.JSONField(null=True)
+
+    groups = f.ManyToManyField('models.Group', related_name='group_accounts',
+                               through='auth_xaccountgroups',
+                               backward_key='account_id', forward_key='group_id')
+    perms = f.ManyToManyField('models.Perm', related_name='perm_accounts',
+                              through='auth_xaccountperms',
+                              backward_key='account_id', forward_key='perm_id')
+    # Project
+    brokers = f.ManyToManyField('models.Broker', related_name='broker_users',
+                                through='trades_xaccountbrokers',
+                                backward_key='account_id', forward_key='broker_id')
 
     og = manager.Manager()
     
@@ -40,6 +52,42 @@ class Account(DTBaseModel, TortoiseBaseUserModel):
     async def to_dict(self):
         pass
 
+    async def add_group(self, *groups) -> Optional[list]:
+        """
+        Add groups to a user and update redis
+        :param groups:  Groups to add
+        :return:        list The user's groups
+        """
+        # Get the ids of the groups
+        
+        
+        # from app.auth import userdb
+        #
+        # groups = list(filter(None, groups))
+        # groups = list(filter(valid_str_only, groups))
+        # if not groups:
+        #     return
+        #
+        # groups = await Group.filter(name__in=groups).only('id', 'name')
+        # if not groups:
+        #     return
+        #
+        # await self.groups.add(*groups)
+        # names = await Group.filter(group_users__id=self.id) \
+        #     .values_list('name', flat=True)
+        #
+        # partialkey = s.CACHE_USERNAME.format(self.id)
+        # if user_dict := red.get(partialkey):
+        #     user_dict = cache.restoreuser_dict(user_dict)
+        #     user = userdb.usercomplete(**user_dict)
+        # else:
+        #     user = await UserMod.get_and_cache(self.id)
+        #
+        # user.groups = names
+        # red.set(partialkey, cache.prepareuser_dict(user.dict()))
+        # return user.groups
+        pass
+    
 
 class AccountGroups(models.Model):
     account = f.ForeignKeyField('models.Account', related_name='accountgroups')
@@ -48,9 +96,9 @@ class AccountGroups(models.Model):
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
-    
+
     class Meta:
-        table = 'auth_account_groups'
+        table = 'auth_xaccountgroups'
         manager = CuratorManager()
 
     def __str__(self):
@@ -65,7 +113,7 @@ class AccountPerms(models.Model):
     og = manager.Manager()
     
     class Meta:
-        table = 'auth_account_perms'
+        table = 'auth_xaccountperms'
         manager = CuratorManager()
 
     def __str__(self):
@@ -81,7 +129,7 @@ class GroupPerms(models.Model):
     og = manager.Manager()
     
     class Meta:
-        table = 'auth_group_perms'
+        table = 'auth_xgroupperms'
         manager = CuratorManager()
         
     def __str__(self):
