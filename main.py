@@ -4,7 +4,7 @@ from tortoise.contrib.starlette import register_tortoise
 
 from app.settings.db import DATABASE
 from app.routes import devrouter, authrouter
-from app.auth import fusers
+from app.auth import fusers, jwtauth
 
 
 def get_app() -> FastAPI:
@@ -12,7 +12,8 @@ def get_app() -> FastAPI:
     
     # Routes: Main
     app.include_router(authrouter, prefix='/auth', tags=['Authentication'])
-    # app.include_router(fusers.get_register_router(), prefix='/auth', tags=['Authentication'])
+    # app.include_router(fusers.get_auth_router(jwtauth), prefix='/auth', tags=['Authentication'])
+    # app.include_router(fusers.get_register_router(jwtauth), prefix='/auth', tags=['Authentication'])
     
     # Routes: Fixtures
     

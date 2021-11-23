@@ -35,9 +35,7 @@ class UserUpdate(models.BaseUserUpdate):
     pass
 
 
-class UserDB(User, models.BaseUserDB):
-    """
-    """
+class UserDB(User, models.BaseUserDB, PydanticModel):
     # username: Optional[str] = ''
     # firstname: Optional[str] = ''
     # midname: Optional[str] = ''
@@ -49,8 +47,7 @@ class UserDB(User, models.BaseUserDB):
     # bio: Optional[str] = ''
     # zipcode: Optional[str] = ''
     # metadata: Optional[dict] = None
-    #
-    # class Config:
-    #     orm_mode = True
-    #     orig_model = Account
-    pass
+
+    class Config:
+        orm_mode = True
+        orig_model = Account

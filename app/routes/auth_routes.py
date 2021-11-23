@@ -6,7 +6,7 @@ from fastapi_users.manager import BaseUserManager, InvalidPasswordException, Use
 
 from app import ic
 from app import settings as s
-from app.auth import jwtauth, User, UserCreate, get_user_manager, setup_new_registration
+from app.auth import jwtauth, User, UserCreate, get_user_manager, fusers
 
 
 
@@ -32,30 +32,23 @@ async def register(request: Request, user: UserCreate, user_manager=Depends(get_
 
 @authrouter.post("/login", name="auth:login")
 async def login(
-        response: Response,
-        credentials: OAuth2PasswordRequestForm = Depends(),
+        response: Response, credentials: OAuth2PasswordRequestForm = Depends(),
         user_manager: BaseUserManager[models.UC, models.UD] = Depends(get_user_manager),
 ):
     user = await user_manager.authenticate(credentials)
-    
+
     if user is None or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorCode.LOGIN_BAD_CREDENTIALS,
-        )
+        raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_BAD_CREDENTIALS)
     if s.REQUIRES_VERIFICATION and not user.is_verified:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorCode.LOGIN_USER_NOT_VERIFIED,
-        )
+        raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_USER_NOT_VERIFIED)
     return await jwtauth.get_login_response(user, response, user_manager)
 
 
-@authrouter.get("/logout")
-async def logout(response: Response):
+@authrouter.get('/logout')
+async def logout(res: Response):
     """
     Logout the user by deleting all tokens.
     """
-    del response.headers['authorization']
-    response.delete_cookie('refresh_token')
+    del res.headers['authorization']
+    res.delete_cookie('refresh_token')
     return

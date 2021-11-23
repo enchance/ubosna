@@ -46,10 +46,3 @@ async def get_user_manager(user_db=Depends(get_user_db)):
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
 fusers = FastAPIUsers(get_user_manager, [jwtauth], User, UserCreate, UserUpdate, UserDB)
 current_user = fusers.current_user()
-
-
-async def setup_new_registration(created_user):
-    # email = created_user.get('email')
-    # display = ''.join((email.split('@')[0]).split('.'))
-    ic(type(created_user), created_user)
-    pass
