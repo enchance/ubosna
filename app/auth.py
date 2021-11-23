@@ -1,4 +1,5 @@
 from typing import Optional
+from operator import itemgetter
 from fastapi import Request, Depends
 from fastapi_users import FastAPIUsers, BaseUserManager
 from fastapi_users.authentication import JWTAuthentication
@@ -16,9 +17,13 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
     reset_password_token_secret = s.SECRET_KEY
     verification_token_secret = s.SECRET_KEY
 
-    # async def on_after_register(self, user: UserDB, request: Optional[Request] = None):
-    #     ic(f"User {user.id} has registered.")
-    #
+    async def on_after_register(self, user: UserDB, request: Optional[Request] = None):
+        # ic(f"User {user.id} has registered.")
+        email, username = itemgetter('email', 'username')(user.dict())
+        account = await Account.get(id=user.id).only('id', 'display')
+        account.display = username and username or user.email.split('@')[0]
+        await account.save(update_fields=['display'])
+
     # async def on_after_forgot_password(
     #         self, user: UserDB, token: str, request: Optional[Request] = None
     # ):
@@ -42,3 +47,9 @@ jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN
 fusers = FastAPIUsers(get_user_manager, [jwtauth], User, UserCreate, UserUpdate, UserDB)
 current_user = fusers.current_user()
 
+
+async def setup_new_registration(created_user):
+    # email = created_user.get('email')
+    # display = ''.join((email.split('@')[0]).split('.'))
+    ic(type(created_user), created_user)
+    pass
