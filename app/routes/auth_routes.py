@@ -11,23 +11,24 @@ from app.auth import jwtauth, User, UserCreate, get_user_manager, fusers
 
 
 authrouter = APIRouter()
+authrouter.include_router(fusers.get_register_router())
 
 
-@authrouter.post("/register", response_model=User, status_code=201, name="register:register")
-async def register(request: Request, user: UserCreate, user_manager=Depends(get_user_manager)):
-    try:
-        created_user = await user_manager.create(user, safe=True, request=request)
-    except UserAlreadyExists:
-        raise HTTPException(status_code=400, detail=ErrorCode.REGISTER_USER_ALREADY_EXISTS)
-    except InvalidPasswordException as e:
-        raise HTTPException(
-            status_code=400,
-            detail={
-                "code": ErrorCode.REGISTER_INVALID_PASSWORD,
-                "reason": e.reason,
-            },
-        )
-    return created_user
+# @authrouter.post("/register", response_model=User, status_code=201, name="register:register")
+# async def register(request: Request, user: UserCreate, user_manager=Depends(get_user_manager)):
+#     try:
+#         created_user = await user_manager.create(user, safe=True, request=request)
+#     except UserAlreadyExists:
+#         raise HTTPException(status_code=400, detail=ErrorCode.REGISTER_USER_ALREADY_EXISTS)
+#     except InvalidPasswordException as e:
+#         raise HTTPException(
+#             status_code=400,
+#             detail={
+#                 "code": ErrorCode.REGISTER_INVALID_PASSWORD,
+#                 "reason": e.reason,
+#             },
+#         )
+#     return created_user
 
 
 @authrouter.post("/login", name="auth:login")

@@ -12,6 +12,7 @@ DATABASE_MODELS = [
     'aerich.models',
     'app.authentication.models.account',
     'app.authentication.models.common',
+    'trades.models'
 ]
 DATABASE = {
     'connections': {

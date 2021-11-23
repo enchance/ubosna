@@ -19,7 +19,9 @@ class Base(BaseSettings):
     USE_TZ: bool = True
     TIMEZONE: str = 'UTC'
     LANGUAGE_CODE: str = 'en-us'
-    CURRENCY: str = os.getenv('CURRENCY')
+    CURRENCY_ACCOUNT: str = os.getenv('CURRENCY_ACCOUNT')
+    CURRENCY_BROKER: str = os.getenv('CURRENCY_BROKER', 'USD')
+    
     
     # Authentication
     ALGORITHM: str = 'HS256'
