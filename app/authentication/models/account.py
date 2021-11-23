@@ -140,7 +140,6 @@ class GroupPerms(models.Model):
 class Perm(SharedMixin, models.Model):
     code = f.CharField(max_length=30, unique=True)
     description = f.CharField(max_length=191, default='')
-    author = f.ForeignKeyField('models.Account', related_name='author_perms')
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
 
@@ -159,7 +158,6 @@ class Perm(SharedMixin, models.Model):
 class Group(SharedMixin, models.Model):
     name = f.CharField(max_length=191, unique=True)
     description = f.CharField(max_length=191, default='')
-    author = f.ForeignKeyField('models.Account', related_name='author_groups')
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
 

@@ -22,7 +22,6 @@ class Base(BaseSettings):
     CURRENCY_ACCOUNT: str = os.getenv('CURRENCY_ACCOUNT')
     CURRENCY_BROKER: str = os.getenv('CURRENCY_BROKER', 'USD')
     
-    
     # Authentication
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE: int = 60 * 15  # seconds (15 mins)
@@ -54,11 +53,11 @@ class Base(BaseSettings):
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)
     PASSWORD_MIN: int = Field(10, ge=10, le=20)
-    USER_GROUPS: List[str] = ['AccountGroup', 'ContentGroup']
     AUTO_VERIFY: bool = False
     VERIFY_EMAIL: bool = True
     EMAIL_SENDER: EmailStr = os.getenv('EMAIL_HOST_USER')
     USER_TIMEZONE: str = os.getenv('USER_TIMEZONE', '+08:00')
+    USER_GROUPS: List[str] = ['AccountGroup', 'ContentGroup']
     GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
     
     # Email
@@ -66,6 +65,9 @@ class Base(BaseSettings):
     EMAIL_HOST: str = os.getenv('EMAIL_HOST')
     EMAIL_HOST_USER: str = os.getenv('EMAIL_HOST_USER')
     EMAIL_HOST_PASS: str = os.getenv('EMAIL_HOST_PASS')
+    
+    # Others
+    PROGRAM_OVERLORDS: str = 'DropkickDev'
     
     # Form/Notice URLs
     # NOTICE_HEADER: dict = {'X-Allow-Notice': 'true'}
