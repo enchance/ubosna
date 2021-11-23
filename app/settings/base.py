@@ -57,7 +57,7 @@ class Base(BaseSettings):
     VERIFY_EMAIL: bool = True
     EMAIL_SENDER: EmailStr = os.getenv('EMAIL_HOST_USER')
     USER_TIMEZONE: str = os.getenv('USER_TIMEZONE', '+08:00')
-    USER_GROUPS: List[str] = ['AccountGroup', 'ContentGroup']
+    USER_GROUPS: List[str] = ['AccountGroup', 'TradeGroup']
     GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
     
     # Email

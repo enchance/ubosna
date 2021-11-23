@@ -1,9 +1,12 @@
+import contextlib
 from typing import Optional
 from operator import itemgetter
 from fastapi import Request, Depends
 from fastapi_users import FastAPIUsers, BaseUserManager
 from fastapi_users.authentication import JWTAuthentication
 from fastapi_users.db import TortoiseUserDatabase
+from fastapi_users.manager import UserAlreadyExists
+from pydantic import EmailStr
 
 from app import settings as s, ic
 from .authentication.models.account import Account
@@ -68,6 +71,22 @@ async def get_user_db():
 async def get_user_manager(user_db=Depends(get_user_db)):
     yield UserManager(user_db)
 
+
+get_user_db_context = contextlib.asynccontextmanager(get_user_db)
+get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
+
+async def create_user(email: str, password: str, *, username: str = '', is_superuser: bool = False):
+    """Programmatically create a user"""
+    try:
+        async with get_user_db_context() as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                created_user = await user_manager.create(
+                    UserCreate(email=EmailStr(email), password=password, username=username,
+                               is_superuser=is_superuser)
+                )
+                return created_user.email
+    except UserAlreadyExists:
+        pass
 
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
 fusers = FastAPIUsers(get_user_manager, [jwtauth], User, UserCreate, UserUpdate, UserDB)

@@ -63,8 +63,7 @@ CREATE TABLE IF NOT EXISTS "auth_xaccountperms" (
 CREATE TABLE IF NOT EXISTS "auth_xgroupperms" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "group_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE,
     "perm_id" INT NOT NULL REFERENCES "auth_perm" ("id") ON DELETE CASCADE
 );
 CREATE TABLE IF NOT EXISTS "auth_token" (
@@ -130,7 +129,7 @@ CREATE TABLE IF NOT EXISTS "trades_broker" (
     "deleted_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "name" VARCHAR(191) NOT NULL,
+    "name" VARCHAR(191) NOT NULL UNIQUE,
     "short" VARCHAR(10) NOT NULL  DEFAULT '',
     "brokerno" INT,
     "logo" VARCHAR(255) NOT NULL  DEFAULT '',

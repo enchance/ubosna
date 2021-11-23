@@ -121,9 +121,8 @@ class AccountPerms(models.Model):
     
 
 class GroupPerms(models.Model):
-    group = f.ForeignKeyField('models.Account', related_name='groupperms')
+    group = f.ForeignKeyField('models.Group', related_name='groupperms')
     perm = f.ForeignKeyField('models.Perm', related_name='groupperms')
-    author = f.ForeignKeyField('models.Account', related_name='author_groupperms')
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()

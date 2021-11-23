@@ -9,7 +9,7 @@ from app.authentication.models.manager import CuratorManager
 
 # INCOMPLETE: Work in progress...
 class Broker(SharedMixin, DTBaseModel):
-    name = f.CharField(max_length=191)
+    name = f.CharField(max_length=191, unique=True)
     short = f.CharField(max_length=10, default='')
     brokerno = f.IntField(null=True)
     logo = f.CharField(max_length=255, default='')

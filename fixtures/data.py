@@ -31,4 +31,6 @@ options_dict = {
 }
 
 # Update as needed
-groups = s.USER_GROUPS
+groups_init = s.USER_GROUPS + ['ModGroupSet', 'AdminGroupSet']
+
+
