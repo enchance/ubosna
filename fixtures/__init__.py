@@ -22,6 +22,7 @@ async def insert_groups():
         ll.append(Group(name=i))
     await Group.bulk_create(ll)
     return ['Groups created.']
+
     
 async def insert_perms():
     """Insert groups, perms, and group perms."""
@@ -49,6 +50,11 @@ async def insert_perms():
                 perm_id = perm_dict[f'{k}.{i}']
                 ll.append(GroupPerms(group_id=group_id, perm_id=perm_id))
     await GroupPerms.bulk_create(ll)
+    
+    # Cache
+    for group, _ in group_dict.items():
+        await Group.get_and_cache(group)
+    
     success.append('Group x Perms created.')
     
     return success

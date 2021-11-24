@@ -4,7 +4,7 @@ from tortoise import models, fields as f, manager
 from tortoise.query_utils import Prefetch
 from limeutils import modstr, listify
 
-from app import settings as s, ic
+from app import settings as s, ic, red
 from app.authentication.models.common import DTBaseModel, SharedMixin
 from app.utils import flatten_query_result
 from .manager import CuratorManager
@@ -211,6 +211,27 @@ class Group(DTBaseModel):
         
     def __str__(self):
         return modstr(self, 'name')
+
+    @classmethod
+    async def get_and_cache(cls, group: str) -> list:
+        """
+        Get a group's permissions and cache it for future use. Replaces data if exists.
+        Only one group must be given so each can be cached separately.
+        :param group:   Group name
+        :return:        list
+        """
+    
+        if perms := await Perm.get_perms(group):
+            # Cache perms of the group
+            partialkey = s.CACHE_GROUPNAME.format(group)
+            red.set(partialkey, perms, ttl=-1, clear=True)
+            
+            # Cache list of all groups
+            grouplist = red.exists('groups') and red.get('groups') or []
+            if group not in grouplist:
+                grouplist.append(group)
+                red.set('groups', grouplist, clear=True)
+        return perms
 
 
 class Token(DTBaseModel):

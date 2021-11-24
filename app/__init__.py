@@ -2,6 +2,7 @@ import logging, pytz
 from fastapi.logger import logger
 # from datetime import datetime
 from icecream.icecream import IceCreamDebugger
+from limeutils import Red
 
 from .exceptions import *
 from .settings import settings  # Not "s" let the user do the renaming
@@ -14,6 +15,9 @@ from .settings import settings  # Not "s" let the user do the renaming
 # Icecream
 ic = IceCreamDebugger()
 ic.enabled = settings.DEBUG
+
+# Redis
+red = Red(**settings.CACHE_CONFIG.get('default'))
 
 
 # Logger
