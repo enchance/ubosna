@@ -1,5 +1,6 @@
 from typing import Optional, Union
 from fastapi import APIRouter, Response, Query, Path, Depends
+from tortoise.query_utils import Prefetch
 
 from app import settings as s
 from app.authentication.models.account import Group, Perm, Account
@@ -9,7 +10,9 @@ devrouter = APIRouter()
 
 @devrouter.get('/')
 async def index(_: Response):
-    account = await Account.get(id='39af25ef-0bda-4118-a6a7-7b40216cec61')
+    id = '39af25ef-0bda-4118-a6a7-7b40216cec61'
+    # account = await Account.get(id=id)
+    # return await Account.get_and_cache(account.id)
     
     # perms1 = await Perm.get_perms('AccountGroup')
     # perms2 = await Perm.get_perms('TradeGroup')

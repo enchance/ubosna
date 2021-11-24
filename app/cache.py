@@ -2,7 +2,7 @@ from typing import Union, List, Optional
 from ast import literal_eval
 from limeutils import Red
 
-from app.settings import settings as s
+from app import settings as s, ic
 
 
 
@@ -32,6 +32,7 @@ def prepareuser_dict(user_dict: dict, exclude: Optional[List[str]] = None) -> di
     :return:            dict
     """
     d = {}
+    exclude = exclude or []
     for k, v in user_dict.items():
         if k not in exclude:
             d[k] = makesafe(v)

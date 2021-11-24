@@ -13,15 +13,14 @@ from .authentication.models.account import Account, Group
 from .authentication.models.pydantic import User, UserCreate, UserUpdate, UserDB
 
 
-# INCOMPLETE: Work in progress...
-def setup_account(account: Account, user: UserDB):
+
+async def setup_account(account: Account, user: UserDB):
     email, username = itemgetter('email', 'username')(user.dict())
     account.display = username and username or user.email.split('@')[0]
     
     # CACHE
-    d = cache.prepareuser_dict(user.dict(), ['hashed_password'])
-    partialkey = s.CACHE_USERNAME.format(user.id)
-    red.set(partialkey, d, ttl=s.CACHE_TTL)
+    await Account.get_and_cache(account.id)
+    
     return account
 
 
@@ -40,10 +39,9 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
     async def on_after_register(self, user: UserDB, request: Optional[Request] = None):
         """User has just registered."""
         account = await Account.get(id=user.id).only('id', 'display')
-        account = setup_account(account, user)
+        account = await setup_account(account, user)
         await account.save(update_fields=['display'])
         await account.add_group(*s.USER_GROUPS)
-        # TODO: Save account data ta cache
         # await setup_options(account)
 
         # Generate verification token which triggers on_after_request_verify()

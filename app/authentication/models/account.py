@@ -2,9 +2,11 @@ from typing import Optional, List
 from fastapi_users.db import TortoiseBaseUserModel
 from tortoise import models, fields as f, manager
 from tortoise.query_utils import Prefetch
+from tortoise.exceptions import DoesNotExist
 from limeutils import modstr, listify
+from pydantic import UUID4
 
-from app import settings as s, ic, red
+from app import settings as s, ic, red, cache
 from app.authentication.models.common import DTBaseModel, SharedMixin
 from app.utils import flatten_query_result
 from .manager import CuratorManager
@@ -50,9 +52,66 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     @property
     def fullname(self):
         return f'{self.firstname} {self.lastname}'.strip()
+
+    # TODO: Revise this. This is still the orig code from stonks
+    async def to_dict(self, exclude: Optional[List[str]] = None, prefetch: bool = False) -> dict:
+        """
+        Converts instance into a dict.
+        :param exclude:     Fields not to explicitly include
+        :param prefetch:    Query used prefetch_related to save on db hits
+        :return:            dict
+        """
+        d = {}
+        exclude = ['created_at', 'deleted_at', 'updated_at', 'hashed_password'] if exclude is None \
+            else exclude
+        for field in self._meta.db_fields:
+            if hasattr(self, field) and field not in exclude:
+                d[field] = getattr(self, field)
+                if field == 'id':
+                    d[field] = str(d[field])
     
-    async def to_dict(self):
-        pass
+        if hasattr(self, 'groups'):
+            if prefetch:
+                d['groups'] = [i.name for i in self.groups]
+            else:
+                d['groups'] = await self.groups.all().values_list('name', flat=True)
+        if hasattr(self, 'options'):
+            if prefetch:
+                d['options'] = {i.name: i.value for i in self.options}
+            else:
+                d['options'] = {
+                    i.name: i.value for i in
+                    await self.options.all().only('id', 'name', 'value', 'is_active') if i.is_active
+                }
+        # if hasattr(self, 'permissions'):
+        #     if prefetch:
+        #         d['permissions'] = [i.code for i in self.permissions]
+        #     else:
+        #         d['permissions'] = await self.permissions.all().values_list('code', flat=True)
+        return d
+
+    @classmethod
+    async def get_and_cache(cls, id: UUID4):
+        try:
+            query = cls.get(pk=id)\
+                .prefetch_related(
+                    Prefetch('groups', queryset=Group.all().only('id', 'name')),
+                    # Prefetch('options', queryset=Option.all().only('user_id', 'name', 'value')),
+                    # Prefetch('permissions', queryset=Permission.filter(deleted_at=None).only('id', 'code'))
+                )
+            account = await query
+            
+            # if userdb.oauth_account_model is not None:
+            #     query = query.prefetch_related("oauth_accounts")
+            # usermod = await query.only(*userdb.select_fields)
+            
+            user_dict = await account.to_dict(prefetch=True)
+            partialkey = s.CACHE_USERNAME.format(id)
+            user_dict = cache.prepareuser_dict(user_dict)
+            red.set(partialkey, cache.prepareuser_dict(user_dict), clear=True)
+            return user_dict
+        except DoesNotExist:
+            pass
 
     async def add_group(self, *grouplist) -> Optional[set]:
         """

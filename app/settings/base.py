@@ -46,7 +46,7 @@ class Base(BaseSettings):
         }
     }
     CACHE_GROUPNAME: str = 'group-{}'
-    CACHE_USERNAME: str = 'user-{}'
+    CACHE_USERNAME: str = 'account-{}'
     CACHE_TAXONOMY: str = 'tax-{}-{}'
     CACHE_TAXONOMY_SEARCH: str = 'tax-{}-*'
     
