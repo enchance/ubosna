@@ -2,13 +2,24 @@ from typing import Optional, Union
 from fastapi import APIRouter, Response, Query, Path, Depends
 
 from app import settings as s
-
+from app.authentication.models.account import Group, Perm, Account
 
 
 devrouter = APIRouter()
 
 @devrouter.get('/')
 async def index(_: Response):
+    
+    # perms1 = await Perm.get_perms('AccountGroup')
+    # perms2 = await Perm.get_perms('TradeGroup')
+    # perms3 = await Perm.get_perms('ModGroupSet')
+    # return [(perms1 + perms2), perms3]
+    
+    # account = await Account.get(id='16131018-459d-4174-8d45-dd7ca6093653')
+    # return await account.has_perm('trade.make')
+    # return await account.has_perm('account.ban')
+    # return await account.get_groups()
+
     return s.TESTDATA
 
 @devrouter.get('/foo/{age}')
@@ -21,4 +32,3 @@ def create_cookie(res: Response):
     res.set_cookie(key="fruit", value="apple")
     res.headers["X-Cat-Dog"] = "alone in the world"
     return {"message": "Come to the dark side, we have cookies"}
-

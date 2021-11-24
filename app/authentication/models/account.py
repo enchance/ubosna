@@ -1,10 +1,12 @@
-from typing import Optional
+from typing import Optional, Union, Iterable
 from fastapi_users.db import TortoiseBaseUserModel
 from tortoise import models, fields as f, manager
-from limeutils import modstr
+from tortoise.query_utils import Prefetch
+from limeutils import modstr, listify
 
-from app import settings as s
+from app import settings as s, ic
 from app.authentication.models.common import DTBaseModel, SharedMixin
+from app.utils import flatten_query_result
 from .manager import CuratorManager
 
 
@@ -93,6 +95,23 @@ class Account(DTBaseModel, TortoiseBaseUserModel):
         # red.set(partialkey, cache.prepareuser_dict(user.dict()))
         # return user.groups
         pass
+
+    async def has_perm(self, codeorgroup: str) -> bool:
+        """
+        Checks if user has a specific perm or is a part of a group.
+        :param codeorgroup: Perm code or group name
+        :return:            bool
+        """
+        # TODO: Use caching
+        group_names = await self.get_groups()
+        perm_codes = group_names and await Perm.get_perms(*group_names) or []
+        return codeorgroup in group_names or codeorgroup in perm_codes
+    
+    async def get_groups(self) -> list:
+        """Get group names assigned to the user."""
+        # TODO: Use caching
+        groupnames = await Group.filter(group_accounts=self.id).values('name')
+        return groupnames and flatten_query_result('name', groupnames) or []
     
 
 class AccountGroups(models.Model):
@@ -159,13 +178,26 @@ class Perm(SharedMixin, models.Model):
     def __str__(self):
         return modstr(self, 'code')
 
+    @classmethod
+    async def get_perms(cls, *groupnames):
+        """
+        Get the perm
+        :param groupnames:
+        :return:
+        """
+        perms = await cls.filter(perm_groups__name__in=groupnames).values('code')
+        return flatten_query_result('code', perms)
 
-# INCOMPLETE: Work in progress...
+
 class Group(SharedMixin, models.Model):
     name = f.CharField(max_length=191, unique=True)
     description = f.CharField(max_length=191, default='')
     updated_at = f.DatetimeField(auto_now=True)
     created_at = f.DatetimeField(auto_now_add=True)
+    
+    perms = f.ManyToManyField('models.Perm', related_name='perm_groups',
+                              through='auth_xgroupperms',
+                              backward_key='group_id', forward_key='perm_id')
 
     og = manager.Manager()
     
