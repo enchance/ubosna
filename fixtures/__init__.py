@@ -17,11 +17,14 @@ fixturerouter = APIRouter()
 
 
 async def insert_groups():
+    # Check for existing
+    groupnames = list(perm_init.keys())
+    grouplist = await Group.filter(name__in=groupnames).values_list('name', flat=True)
+    
     ll = []
-    names = []
     for i in perm_init:
-        ll.append(Group(name=i))
-        names.append(i)
+        if i not in grouplist:
+            ll.append(Group(name=i))
     await Group.bulk_create(ll)
     
     # Caching for this is done in Group.get_and_cache()
@@ -32,6 +35,9 @@ async def insert_perms():
     """Insert groups, perms, and group perms."""
     success = []
 
+    # Check for existing
+    permlist = await Perm.all().values_list('code', flat=True)
+
     # Perms
     ss = set()
     for groupname, val in perm_init.items():
@@ -39,7 +45,8 @@ async def insert_perms():
             ss.update({f'{k}.{i}' for i in v})
     ll = []
     for i in sorted(ss):
-        ll.append(Perm(code=i))
+        if i not in permlist:
+            ll.append(Perm(code=i))
     await Perm.bulk_create(ll)
     success.append('Perms created')
     
