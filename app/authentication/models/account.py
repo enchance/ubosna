@@ -10,7 +10,7 @@ from app.utils import flatten_query_result
 from .manager import CuratorManager
 
 
-class Account(DTBaseModel, TortoiseBaseUserModel):
+class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     username = f.CharField(max_length=50, default='')
     display = f.CharField(max_length=50, default='')
     firstname = f.CharField(max_length=191, default='')
@@ -162,11 +162,10 @@ class GroupPerms(models.Model):
     
 
 # INCOMPLETE: Work in progress...
-class Perm(SharedMixin, models.Model):
+class Perm(DTBaseModel):
     code = f.CharField(max_length=30, unique=True)
     description = f.CharField(max_length=191, default='')
-    updated_at = f.DatetimeField(auto_now=True)
-    created_at = f.DatetimeField(auto_now_add=True)
+    deleted_at = None
 
     og = manager.Manager()
     
@@ -189,11 +188,10 @@ class Perm(SharedMixin, models.Model):
         return flatten_query_result('code', perms)
 
 
-class Group(SharedMixin, models.Model):
+class Group(DTBaseModel):
     name = f.CharField(max_length=191, unique=True)
     description = f.CharField(max_length=191, default='')
-    updated_at = f.DatetimeField(auto_now=True)
-    created_at = f.DatetimeField(auto_now_add=True)
+    deleted_at = None
     
     perms = f.ManyToManyField('models.Perm', related_name='perm_groups',
                               through='auth_xgroupperms',
@@ -210,12 +208,12 @@ class Group(SharedMixin, models.Model):
         return modstr(self, 'name')
 
 
-class Token(SharedMixin, models.Model):
+class Token(DTBaseModel):
     token = f.CharField(max_length=128, unique=True)
     expires = f.DatetimeField(index=True)
     is_blacklisted = f.BooleanField(default=False)
     account = f.ForeignKeyField('models.Account', related_name='account_tokens', on_delete=f.CASCADE)
-    created_at = f.DatetimeField(auto_now_add=True)
+    deleted_at = None
 
     og = manager.Manager()
     

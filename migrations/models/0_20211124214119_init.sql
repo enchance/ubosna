@@ -34,10 +34,10 @@ CREATE INDEX IF NOT EXISTS "idx_auth_accoun_deleted_112596" ON "auth_account" ("
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_email_3074e7" ON "auth_account" ("email");
 CREATE TABLE IF NOT EXISTS "auth_group" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "name" VARCHAR(191) NOT NULL UNIQUE,
-    "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "name" VARCHAR(191) NOT NULL UNIQUE,
+    "description" VARCHAR(191) NOT NULL  DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS "auth_xaccountgroups" (
     "id" SERIAL NOT NULL PRIMARY KEY,
@@ -48,10 +48,10 @@ CREATE TABLE IF NOT EXISTS "auth_xaccountgroups" (
 );
 CREATE TABLE IF NOT EXISTS "auth_perm" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "code" VARCHAR(30) NOT NULL UNIQUE,
-    "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "code" VARCHAR(30) NOT NULL UNIQUE,
+    "description" VARCHAR(191) NOT NULL  DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS "auth_xaccountperms" (
     "id" SERIAL NOT NULL PRIMARY KEY,
@@ -68,10 +68,11 @@ CREATE TABLE IF NOT EXISTS "auth_xgroupperms" (
 );
 CREATE TABLE IF NOT EXISTS "auth_token" (
     "id" SERIAL NOT NULL PRIMARY KEY,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "token" VARCHAR(128) NOT NULL UNIQUE,
     "expires" TIMESTAMPTZ NOT NULL,
     "is_blacklisted" BOOL NOT NULL  DEFAULT False,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_auth_token_expires_0eb57d" ON "auth_token" ("expires");
@@ -96,16 +97,14 @@ CREATE INDEX IF NOT EXISTS "idx_core_media_deleted_becbda" ON "core_media" ("del
 CREATE INDEX IF NOT EXISTS "idx_core_media_mediaty_e27c92" ON "core_media" ("mediatype");
 CREATE TABLE IF NOT EXISTS "core_option" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "deleted_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(20) NOT NULL,
     "value" VARCHAR(191) NOT NULL,
-    "admin_only" BOOL NOT NULL  DEFAULT False,
+    "optiontype" SMALLINT NOT NULL  DEFAULT 1,
     "is_active" BOOL NOT NULL  DEFAULT True,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS "idx_core_option_deleted_51a5b3" ON "core_option" ("deleted_at");
 CREATE TABLE IF NOT EXISTS "core_taxo" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
