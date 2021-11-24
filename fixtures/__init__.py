@@ -54,15 +54,13 @@ async def insert_groups_and_perms():
     return success
 
 
-async def insert_accounts():
+async def insert_accounts(*, verified: int, unverified: int):
     """Create users."""
     with open('/usr/share/dict/cracklib-small', 'r') as w:
         words = w.read().splitlines()
         
     verified_list = []
     total = 0
-    verified = 5
-    unverified = 4
     superemails = ['super1@gmail.com', 'super2@gmail.com']
     password = 'pass123'
     
@@ -111,12 +109,15 @@ async def insert_taxos():
 
 @atomic
 @fixturerouter.get('/init', summary='Initial data for the site')
-async def init(accounts_only: bool = False, options_only: bool = False, taxos_only: bool = False):
+async def init(
+        verified: int = 4, unverified: int = 3,
+        accounts_only: bool = False, options_only: bool = False, taxos_only: bool = False
+):
     success = []
     if not accounts_only or not options_only or not taxos_only:
         success += await insert_groups_and_perms()
     if not options_only or not taxos_only:
-        success += await insert_accounts()
+        success += await insert_accounts(verified=verified, unverified=unverified)
     if not accounts_only or not taxos_only:
         success += await insert_options()
     if not options_only or not accounts_only:

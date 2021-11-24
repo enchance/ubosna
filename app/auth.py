@@ -9,7 +9,7 @@ from fastapi_users.manager import UserAlreadyExists
 from pydantic import EmailStr
 
 from app import settings as s, ic
-from .authentication.models.account import Account
+from .authentication.models.account import Account, Group
 from .authentication.models.pydantic import User, UserCreate, UserUpdate, UserDB
 
 
@@ -18,13 +18,6 @@ def setup_account(account: Account, user: UserDB):
     email, username = itemgetter('email', 'username')(user.dict())
     account.display = username and username or user.email.split('@')[0]
     return account
-
-
-# INCOMPLETE: Work in progress...
-async def setup_groups(account: Account):
-    # Get the ids of the default groups
-    # Add groups to the user
-    return
 
 
 # INCOMPLETE: Work in progress...
@@ -45,9 +38,8 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
         
         account = setup_account(account, user)
         await account.save(update_fields=['display'])
-        
-        await setup_groups(account)
-        await setup_options(account)
+        await account.add_group(*s.USER_GROUPS)
+        # await setup_options(account)
         
         # Generate verification token which triggers on_after_request_verify()
         await self.request_verify(user, request)

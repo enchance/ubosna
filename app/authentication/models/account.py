@@ -58,8 +58,14 @@ class Account(DTBaseModel, TortoiseBaseUserModel):
         :param groups:  Groups to add
         :return:        list The user's groups
         """
-        # Get the ids of the groups
+        if not groups:
+            return
         
+        group_ids = await Group.filter(name__in=groups).only('id')
+        to_save = [AccountGroups(account=self, group=id, author=self) for id in group_ids]
+        await AccountGroups.bulk_create(to_save)
+        
+        # TODO: Save groups to cache on creation
         
         # from app.auth import userdb
         #
@@ -90,9 +96,9 @@ class Account(DTBaseModel, TortoiseBaseUserModel):
     
 
 class AccountGroups(models.Model):
-    account = f.ForeignKeyField('models.Account', related_name='accountgroups')
-    group = f.ForeignKeyField('models.Group', related_name='accountgroups')
-    author = f.ForeignKeyField('models.Account', related_name='author_accountgroups')
+    account = f.ForeignKeyField('models.Account', related_name='accountgroups', on_delete=f.CASCADE)
+    group = f.ForeignKeyField('models.Group', related_name='accountgroups', on_delete=f.CASCADE)
+    author = f.ForeignKeyField('models.Account', related_name='author_accountgroups', on_delete=f.CASCADE)
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
@@ -104,10 +110,11 @@ class AccountGroups(models.Model):
     def __str__(self):
         return f'{self.account}:{self.group}'
 
+
 class AccountPerms(models.Model):
-    account = f.ForeignKeyField('models.Account', related_name='accountperms')
-    perm = f.ForeignKeyField('models.Perm', related_name='accountperms')
-    author = f.ForeignKeyField('models.Account', related_name='author_accountperms')
+    account = f.ForeignKeyField('models.Account', related_name='accountperms', on_delete=f.CASCADE)
+    perm = f.ForeignKeyField('models.Perm', related_name='accountperms', on_delete=f.CASCADE)
+    author = f.ForeignKeyField('models.Account', related_name='author_accountperms', on_delete=f.CASCADE)
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
@@ -121,8 +128,8 @@ class AccountPerms(models.Model):
     
 
 class GroupPerms(models.Model):
-    group = f.ForeignKeyField('models.Group', related_name='groupperms')
-    perm = f.ForeignKeyField('models.Perm', related_name='groupperms')
+    group = f.ForeignKeyField('models.Group', related_name='groupperms', on_delete=f.CASCADE)
+    perm = f.ForeignKeyField('models.Perm', related_name='groupperms', on_delete=f.CASCADE)
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
@@ -175,7 +182,7 @@ class Token(SharedMixin, models.Model):
     token = f.CharField(max_length=128, unique=True)
     expires = f.DatetimeField(index=True)
     is_blacklisted = f.BooleanField(default=False)
-    account = f.ForeignKeyField('models.Account', related_name='account_tokens')
+    account = f.ForeignKeyField('models.Account', related_name='account_tokens', on_delete=f.CASCADE)
     created_at = f.DatetimeField(auto_now_add=True)
 
     og = manager.Manager()
