@@ -5,7 +5,7 @@ from pydantic import EmailStr, ValidationError
 
 from .data import *
 from .perms import *
-from app import ic
+from app import ic, settings as s, red
 from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
 from app.authentication.models.pydantic import UserCreate
@@ -18,9 +18,13 @@ fixturerouter = APIRouter()
 
 async def insert_groups():
     ll = []
+    names = []
     for i in perm_init:
         ll.append(Group(name=i))
+        names.append(i)
     await Group.bulk_create(ll)
+    
+    # Caching for this is done in Group.get_and_cache()
     return ['Groups created.']
 
     
@@ -51,7 +55,7 @@ async def insert_perms():
                 ll.append(GroupPerms(group_id=group_id, perm_id=perm_id))
     await GroupPerms.bulk_create(ll)
     
-    # Cache
+    # CACHE
     for group, _ in group_dict.items():
         await Group.get_and_cache(group)
     
