@@ -16,16 +16,16 @@ from app.authentication.models.pydantic import UserCreate
 fixturerouter = APIRouter()
 
 
-async def insert_groups_and_perms():
-    """Insert groups, perms, and group perms."""
-    success = []
-    
-    # Groups
+async def insert_groups():
     ll = []
     for i in perm_init:
         ll.append(Group(name=i))
     await Group.bulk_create(ll)
-    success.append('Groups created.')
+    return ['Groups created.']
+    
+async def insert_perms():
+    """Insert groups, perms, and group perms."""
+    success = []
 
     # Perms
     ss = set()
@@ -111,16 +111,19 @@ async def insert_taxos():
 @fixturerouter.get('/init', summary='Initial data for the site')
 async def init(
         verified: int = 4, unverified: int = 3,
-        accounts_only: bool = False, options_only: bool = False, taxos_only: bool = False
+        accounts: bool = True, groups: bool = True, perms: bool = True,
+        options: bool = True, taxos: bool = True
 ):
     success = []
-    if not accounts_only or not options_only or not taxos_only:
-        success += await insert_groups_and_perms()
-    if not options_only or not taxos_only:
+    if groups:
+        success += await insert_groups()
+    if perms:
+        success += await insert_perms()
+    if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
-    if not accounts_only or not taxos_only:
+    if options:
         success += await insert_options()
-    if not options_only or not accounts_only:
+    if taxos:
         success += await insert_taxos()
     return success
     

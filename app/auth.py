@@ -39,6 +39,7 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
         account = setup_account(account, user)
         await account.save(update_fields=['display'])
         await account.add_group(*s.USER_GROUPS)
+        # TODO: Save account data ta cache
         # await setup_options(account)
         
         # Generate verification token which triggers on_after_request_verify()

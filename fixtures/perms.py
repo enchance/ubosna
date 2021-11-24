@@ -12,34 +12,41 @@ full =  [
 banning = ['ban', 'unban']
 closing = ['close', 'reopen']
 
+# Perm combinations:
+# edit: ['read', 'update']
+# make: ['create', 'delete',]
+# attach: ['attach', 'detach']
+# ban: ['ban', 'unban']
+# close: ['close', 'reopen']
+
 # All users have these groups
 perm_init = {
     'AccountGroup': {
-        'profile': ['read', 'update'],
-        'settings': ['read', 'update'],
-        'upload': cud,
-        'message': cud,
-        'taxo': cud,
+        'settings': ['edit'],
+        'uploads': ['edit', 'make'],
+        'options': ['edit']
+        # 'taxo': ['manage'],
     },
     'TradeGroup': {
-        'trade': cud,
-        'mark': cud,
-        'broker': ['read'] + attacher,
-        'collection': cud + attacher,
+        'trade': ['make', 'edit'],
+        # 'mark': ['manage'],
+        # 'broker': ['read'] + attacher,
+        # 'collection': cud + attacher,
     },
     # Users can only have one or none of a group ending in "-Set".
     # Normal users have neither of these.
     'ModGroupSet': {
-        'settings': ['read_mod', 'update_mod'],
-        'broker': attacher_mod,
-        'taxo': cud_mod + attacher_mod,
-        'account': banning + closing,
+        'settings': ['edit_mod'],
+        'options': ['edit_mod'],
+        # 'broker': ['edit'],
+        # 'taxo': cud_mod + attacher_mod,
+        'account': ['ban']
     }
 }
 perm_init['AdminGroupSet'] = {
     **perm_init['ModGroupSet'],
-    'broker': cud + attacher_mod,
-    'account': ['create', 'delete'] + banning + closing,
+    # 'broker': cud + attacher_mod,
+    'account': ['ban', 'close', 'create']
     
 }
 
