@@ -24,7 +24,6 @@ async def setup_account(account: Account, user: UserDB):
     return account
 
 
-# INCOMPLETE: Work in progress...
 async def setup_options(account: Account):
     # Read list of options
     # Assign options to account with default values

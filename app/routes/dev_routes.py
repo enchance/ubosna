@@ -11,7 +11,7 @@ devrouter = APIRouter()
 @devrouter.get('/')
 async def index(_: Response):
     id = '39af25ef-0bda-4118-a6a7-7b40216cec61'
-    # account = await Account.get(id=id)
+    account = await Account.get(id=id)
     # return await Account.get_and_cache(account.id)
     
     # perms1 = await Perm.get_perms('AccountGroup')

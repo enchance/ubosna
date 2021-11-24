@@ -106,6 +106,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             # usermod = await query.only(*userdb.select_fields)
             
             user_dict = await account.to_dict(prefetch=True)
+            ic(user_dict)
             partialkey = s.CACHE_USERNAME.format(id)
             user_dict = cache.prepareuser_dict(user_dict)
             red.set(partialkey, cache.prepareuser_dict(user_dict), clear=True)
@@ -132,7 +133,6 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             to_save = [AccountGroups(account=self, group=id, author=self) for id in group_ids]
             await AccountGroups.bulk_create(to_save)
         return to_add
-        
         
         # from app.auth import userdb
         #
@@ -225,7 +225,6 @@ class GroupPerms(models.Model):
         return f'{self.group}:{self.perm}'
     
 
-# INCOMPLETE: Work in progress...
 class Perm(DTBaseModel):
     code = f.CharField(max_length=30, unique=True)
     description = f.CharField(max_length=191, default='')
@@ -241,7 +240,6 @@ class Perm(DTBaseModel):
     def __str__(self):
         return modstr(self, 'code')
 
-    # TESTME: Untested
     @classmethod
     async def get_perms(cls, *groupnames) -> List[str]:
         """

@@ -7,7 +7,6 @@ from app.authentication.models.manager import CuratorManager
 
 
 
-# INCOMPLETE: Work in progress...
 class Broker(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=191, unique=True)
     short = f.CharField(max_length=10, default='')
@@ -31,7 +30,6 @@ class Broker(SharedMixin, DTBaseModel):
         return modstr(self, 'name')
     
     
-# INCOMPLETE: Work in progress...
 class AccountBrokers(SharedMixin, DTBaseModel):
     account = f.ForeignKeyField('models.Account', related_name='accountbrokers')
     broker = f.ForeignKeyField('models.Broker', related_name='accountbrokers')
