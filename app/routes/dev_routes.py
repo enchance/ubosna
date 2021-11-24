@@ -9,17 +9,26 @@ devrouter = APIRouter()
 
 @devrouter.get('/')
 async def index(_: Response):
+    account = await Account.get(id='656196a0-f99b-4363-a75e-df2e4f2f5dc8')
     
     # perms1 = await Perm.get_perms('AccountGroup')
     # perms2 = await Perm.get_perms('TradeGroup')
     # perms3 = await Perm.get_perms('ModGroupSet')
     # return [(perms1 + perms2), perms3]
     
-    # account = await Account.get(id='16131018-459d-4174-8d45-dd7ca6093653')
-    # return await account.has_perm('trade.make')
-    # return await account.has_perm('account.ban')
-    # return await account.get_groups()
+    # # return await account.has_perm('trade.make')
+    # # return await account.has_perm('account.ban')
+    
+    data1 = await account.get_groups()
+    # data1 = await Perm.get_perms(*data1)
+    await account.add_group('ModGroupSet')
+    data2 = await account.get_groups()
+    # data2 = await Perm.get_perms(*data2)
+    
+    return [data1, data2]
 
+    # return await Group.filter(name__in={'AccountGroup', 'TradeGroup'}).only('id', 'name')
+    
     return s.TESTDATA
 
 @devrouter.get('/foo/{age}')

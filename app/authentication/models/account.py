@@ -1,4 +1,4 @@
-from typing import Optional, Union, Iterable
+from typing import Optional, List
 from fastapi_users.db import TortoiseBaseUserModel
 from tortoise import models, fields as f, manager
 from tortoise.query_utils import Prefetch
@@ -54,20 +54,26 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     async def to_dict(self):
         pass
 
-    async def add_group(self, *groups) -> Optional[list]:
+    async def add_group(self, *grouplist) -> Optional[set]:
         """
-        Add groups to a user and update redis
-        :param groups:  Groups to add
-        :return:        list The user's groups
+        Add groups to a user and update redis.
+        :param grouplist:   Groups to add
+        :return:            Set of added groups. Any existing groups are removed from the list.
         """
-        if not groups:
+        if not grouplist:
             return
         
-        group_ids = await Group.filter(name__in=groups).only('id')
-        to_save = [AccountGroups(account=self, group=id, author=self) for id in group_ids]
-        await AccountGroups.bulk_create(to_save)
+        # TODO: Save to cache
+        grouplist = set(grouplist)
+        existing = set(await self.get_groups())
+        to_add = grouplist - existing
         
-        # TODO: Save groups to cache on creation
+        if to_add:
+            group_ids = await Group.filter(name__in=to_add).only('id', 'name')
+            to_save = [AccountGroups(account=self, group=id, author=self) for id in group_ids]
+            await AccountGroups.bulk_create(to_save)
+        return to_add
+        
         
         # from app.auth import userdb
         #
@@ -94,7 +100,6 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         # user.groups = names
         # red.set(partialkey, cache.prepareuser_dict(user.dict()))
         # return user.groups
-        pass
 
     async def has_perm(self, codeorgroup: str) -> bool:
         """
@@ -107,7 +112,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         perm_codes = group_names and await Perm.get_perms(*group_names) or []
         return codeorgroup in group_names or codeorgroup in perm_codes
     
-    async def get_groups(self) -> list:
+    async def get_groups(self) -> List[str]:
         """Get group names assigned to the user."""
         # TODO: Use caching
         groupnames = await Group.filter(group_accounts=self.id).values('name')
