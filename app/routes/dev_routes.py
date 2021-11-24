@@ -9,7 +9,7 @@ devrouter = APIRouter()
 
 @devrouter.get('/')
 async def index(_: Response):
-    account = await Account.get(id='656196a0-f99b-4363-a75e-df2e4f2f5dc8')
+    account = await Account.get(id='39af25ef-0bda-4118-a6a7-7b40216cec61')
     
     # perms1 = await Perm.get_perms('AccountGroup')
     # perms2 = await Perm.get_perms('TradeGroup')
@@ -19,13 +19,19 @@ async def index(_: Response):
     # # return await account.has_perm('trade.make')
     # # return await account.has_perm('account.ban')
     
-    data1 = await account.get_groups()
+    # data1 = await account.get_groups()
     # data1 = await Perm.get_perms(*data1)
-    await account.add_group('ModGroupSet')
-    data2 = await account.get_groups()
+    # await account.add_group('ModGroupSet')
+    # data2 = await account.get_groups()
     # data2 = await Perm.get_perms(*data2)
+    # return [data1, data2]
     
-    return [data1, data2]
+    # return await account.get
+    # dbperms = await Perm.filter(perm_groups__name__in=['AccountGroup'])\
+    #     .values_list('code', flat=True)
+    # return dbperms
+    # perms = await Perm.get_perms('AccountGroup', 'ModGroupSet')
+    # return perms
 
     # return await Group.filter(name__in={'AccountGroup', 'TradeGroup'}).only('id', 'name')
     

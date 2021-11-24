@@ -182,15 +182,33 @@ class Perm(DTBaseModel):
     def __str__(self):
         return modstr(self, 'code')
 
+    # TESTME: Untested
     @classmethod
-    async def get_perms(cls, *groupnames):
+    async def get_perms(cls, *groupnames) -> List[str]:
         """
-        Get the perm
-        :param groupnames:
-        :return:
+        Get a consolidated list of perms of the groupnames
+        :param groupnames:  name of groups
+        :return:            list
         """
-        perms = await cls.filter(perm_groups__name__in=groupnames).values('code')
-        return flatten_query_result('code', perms)
+        if not groupnames:
+            return []
+
+        in_db = []
+        perms = []
+
+        for name in groupnames:
+            # Check cache
+            partialkey = s.CACHE_GROUPNAME.format(name)
+            if cacheperms := red.exists(partialkey) and red.get(partialkey):
+                perms.extend(cacheperms)
+            else:
+                in_db.append(name)
+
+        # Check db if not in cache
+        if in_db:
+            dbperms = await cls.filter(perm_groups__name__in=in_db).values_list('code', flat=True)
+            perms.extend(dbperms)
+        return perms
 
 
 class Group(DTBaseModel):
