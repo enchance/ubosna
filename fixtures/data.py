@@ -28,6 +28,16 @@ options_dict = {
         'max_upload_size': 5,        # MB
     }
 }
+taxos_dict = {
+    'site': {
+        'tags': [],
+        'category': []
+    },
+    'global': {
+        'tags': ['apple', 'pear'],
+        'category': ['bird', 'dog']
+    }
+}
 
 # Update as needed
 groups_init = s.USER_GROUPS + ['ModGroupSet', 'AdminGroupSet']

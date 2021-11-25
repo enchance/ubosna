@@ -9,7 +9,7 @@ from .perms import *
 from app import ic, settings as s, red, cache
 from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
-from app.authentication.models.common import Option
+from app.authentication.models.common import Option, Taxo
 from app.authentication.models.pydantic import UserCreate
 from app.pydantic import OptionTemplate
 
@@ -51,7 +51,7 @@ async def insert_perms():
         if i not in permlist:
             ll.append(Perm(code=i))
     await Perm.bulk_create(ll)
-    success.append('Perms created')
+    success.append('Perms created.')
     
     # Group x Perm
     group_dict = dict(await Group.all().values_list('name', 'id'))
@@ -74,7 +74,7 @@ async def insert_perms():
     return success
 
 
-async def insert_accounts(*, verified: int, unverified: int) -> None:
+async def insert_accounts(*, verified: int, unverified: int):
     """Create users."""
     with open('/usr/share/dict/cracklib-small', 'r') as w:
         words = w.read().splitlines()
@@ -127,8 +127,6 @@ async def insert_accounts(*, verified: int, unverified: int) -> None:
         
     except ValidationError:
         pass
-    
-    # TODO: Get options with type of template and save them for each account under the type of "account"
         
     return [f'{total} accounts created.']
 
@@ -143,7 +141,7 @@ async def insert_options():
             if k in optdb:
                 continue
             ll.append(Option(name=k, value=v, optiontype=optiontype))
-    await Option.bulk_create(ll)
+    ll and await Option.bulk_create(ll)
     
     # Cache
     partialkey = s.CACHE_OPTION_SITE
@@ -157,7 +155,21 @@ async def insert_options():
 
 
 async def insert_taxos():
-    return []
+    taxodb = await Taxo.filter(taxotype='tag').values_list('name', flat=True)
+    
+    ll = []
+    for tag in taxos_dict['global']['tags']:
+        # Prevent multiple inserts
+        if tag in taxodb:
+            continue
+        ll.append(Taxo(name=tag, taxotype='tag', is_global=True))
+    ll and await Taxo.bulk_create(ll)
+    
+    # Cache
+    partialkey = s.CACHE_TAXO_TAG_TEMPLATE
+    red.set(partialkey, taxos_dict['global']['tags'], clear=True)
+    
+    return ['Taxos created.']
 
 
 @atomic
@@ -173,11 +185,13 @@ async def init(
     if perms:
         success += await insert_perms()
     if options:
+        # Must come before accounts
         success += await insert_options()
+    if taxos:
+        # Must come before accounts
+        success += await insert_taxos()
     if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
-    if taxos:
-        success += await insert_taxos()
     return success
     
 

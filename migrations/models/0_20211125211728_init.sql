@@ -106,23 +106,21 @@ CREATE TABLE IF NOT EXISTS "core_option" (
     "is_active" BOOL NOT NULL  DEFAULT True,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );
+CREATE INDEX IF NOT EXISTS "idx_core_option_optiont_406baa" ON "core_option" ("optiontype");
 CREATE TABLE IF NOT EXISTS "core_taxo" (
     "id" SERIAL NOT NULL PRIMARY KEY,
-    "deleted_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(50) NOT NULL,
     "display" VARCHAR(50) NOT NULL  DEFAULT '',
     "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "sort" SMALLINT NOT NULL  DEFAULT 100,
-    "taxotype" SMALLINT NOT NULL  DEFAULT 1,
+    "taxotype" VARCHAR(10) NOT NULL,
     "is_active" BOOL NOT NULL  DEFAULT True,
     "is_global" BOOL NOT NULL  DEFAULT False,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "parent_id" INT REFERENCES "core_taxo" ("id") ON DELETE CASCADE
 );
-CREATE INDEX IF NOT EXISTS "idx_core_taxo_deleted_f8c4a3" ON "core_taxo" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_taxo_taxotyp_094828" ON "core_taxo" ("taxotype");
 CREATE TABLE IF NOT EXISTS "trades_broker" (
     "id" SERIAL NOT NULL PRIMARY KEY,

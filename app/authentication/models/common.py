@@ -47,12 +47,12 @@ class Taxo(SharedMixin, DTBaseModel):
     description = f.CharField(max_length=191, default='')
     sort = f.SmallIntField(default=100)
     parent = f.ForeignKeyField('models.Taxo', related_name='parent_taxos', null=True, on_delete=f.CASCADE)
-    taxotype = f.SmallIntField(default=1, index=True)       # TaxoTypeChoices
+    taxotype = f.CharField(max_length=10, index=True)       # TaxoTypeChoices
 
     is_active = f.BooleanField(default=True)
     is_global = f.BooleanField(default=False)
     account = f.ForeignKeyField('models.Account', related_name='account_taxos', null=True, on_delete=f.CASCADE)
-    author = f.ForeignKeyField('models.Account', related_name='author_taxos')
+    deleted_at = None
 
     og = manager.Manager()
     
@@ -74,7 +74,7 @@ class Taxo(SharedMixin, DTBaseModel):
 class Option(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=20)
     value = f.CharField(max_length=191)
-    optiontype = f.CharField(max_length=10)
+    optiontype = f.CharField(max_length=10, index=True)
     
     is_active = f.BooleanField(default=True)
     account = f.ForeignKeyField('models.Account', related_name='account_options', null=True, on_delete=f.CASCADE)
@@ -98,7 +98,6 @@ class Option(SharedMixin, DTBaseModel):
     
     @classmethod
     async def get_templates(cls) -> OptionTemplate:
-        # Cache
         partialkey = s.CACHE_OPTION_TEMPLATE
         if d := red.exists(partialkey) and red.get(partialkey) or {}:
             # ic('cache')

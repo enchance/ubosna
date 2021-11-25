@@ -53,6 +53,8 @@ class Base(BaseSettings):
     CACHE_OPTION_SITE: str = 'option-site'
     CACHE_OPTION_ADMIN: str = 'option-admin'
     CACHE_OPTION_TEMPLATE: str = 'option-template'
+    CACHE_TAXO_TAG_TEMPLATE: str = 'taxo-tags'
+    CACHE_TAXO_CAT_TEMPLATE: str = 'taxo-cats'
     
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)
