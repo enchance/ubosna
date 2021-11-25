@@ -33,7 +33,9 @@ async def setup_options(account: Account):
 class UserManager(BaseUserManager[UserCreate, UserDB]):
     user_db_model = UserDB
     reset_password_token_secret = s.SECRET_KEY
+    reset_password_token_lifetime_seconds = s.ACCESS_TOKEN_EXPIRE
     verification_token_secret = s.SECRET_KEY
+    verification_token_lifetime_seconds = s.VERIFY_TOKEN_EXPIRE
 
     async def on_after_register(self, user: UserDB, request: Optional[Request] = None):
         """User has just registered."""

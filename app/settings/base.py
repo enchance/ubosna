@@ -28,8 +28,9 @@ class Base(BaseSettings):
     REFRESH_TOKEN_EXPIRE: int = 3600 * 24 * 15  # seconds (15 days)
     REFRESH_TOKEN_CUTOFF: int = ACCESS_TOKEN_EXPIRE  # minutes
     SESSION_COOKIE_AGE: int = 3600 * 24 * 15  # seconds
-    VERIFY_EMAIL_TTL: int = 3600 * 3  # seconds
-    RESET_PASSWORD_TTL: int = 60 * 30  # seconds
+    VERIFY_EMAIL_TTL: int = 3600 * 3    # seconds
+    VERIFY_TOKEN_EXPIRE: int = 3600     # seconds
+    RESET_PASSWORD_TTL: int = 60 * 30   # seconds
     REQUIRES_VERIFICATION: bool = True
     
     # Database
