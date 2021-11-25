@@ -1,17 +1,18 @@
 from typing import Optional, Union
 from fastapi import APIRouter, Response, Query, Path, Depends
-from tortoise.query_utils import Prefetch
+from tortoise.query_utils import Prefetch, Q
 
 from app import settings as s, ic
 from app.auth import current_user
 from app.authentication.models.account import Group, Perm, Account
+from app.authentication.models.common import Option
 
 
 devrouter = APIRouter()
 
 @devrouter.get('/')
 async def index(_: Response):
-    id = 'db46774d-fd08-4a2c-a6b5-7f888af37cfb'
+    id = '684f0bf2-bb11-4405-a7ca-a217c39b6771'
     account = await Account.get(id=id)
     # return await Account.get_and_cache(account.id)
     
@@ -38,6 +39,17 @@ async def index(_: Response):
     # return perms
 
     # return await Group.filter(name__in={'AccountGroup', 'TradeGroup'}).only('id', 'name')
+    
+    # if y := []:
+    #     ic('foo')
+    # else:
+    #     y = 'x'
+    #     ic(y)
+    # ic(y)
+    
+    # x = await Account.all().values_list('id', flat=True)
+    # x = await Account.filter(Q(account_options=None)).distinct().values_list('id', flat=True)
+    # return x
     
     return s.TESTDATA
 

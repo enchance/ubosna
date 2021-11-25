@@ -22,7 +22,7 @@ class OptionTemplate(BaseModel):
     date_format: str
     
     currency: str
-    access_token: datetime
-    refresh_token: datetime
+    access_token: int
+    refresh_token: int
     refresh_token_cutoff: int
     verify_email: bool

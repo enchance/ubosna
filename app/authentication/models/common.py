@@ -3,6 +3,8 @@ from typing import Optional, List
 from tortoise import fields as f, models, manager
 from limeutils import modstr
 
+from app import ic, red, settings as s, cache
+from app.pydantic import OptionTemplate
 from .manager import CuratorManager
 
 
@@ -93,6 +95,20 @@ class Option(SharedMixin, DTBaseModel):
         """Get data and force save it to cache."""
         pass
         # INCOMPLETE: Work in progress...
+    
+    @classmethod
+    async def get_templates(cls) -> OptionTemplate:
+        # Cache
+        partialkey = s.CACHE_OPTION_TEMPLATE
+        if d := red.exists(partialkey) and red.get(partialkey) or {}:
+            # ic('cache')
+            return OptionTemplate(**d)
+        # ic('db')
+        d = dict(await cls.filter(optiontype='template').values_list('name', 'value'))
+        d = OptionTemplate(**d)
+        red.set(partialkey, cache.makesafe_dict(d.dict()), clear=True)
+        return d
+        
 
 
 class Media(SharedMixin, DTBaseModel):

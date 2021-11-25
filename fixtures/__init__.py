@@ -1,6 +1,7 @@
 import random
 from fastapi import FastAPI, APIRouter, Depends, Query
 from tortoise.transactions import atomic
+from tortoise.query_utils import Q
 from pydantic import EmailStr, ValidationError
 
 from .data import *
@@ -10,6 +11,7 @@ from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
 from app.authentication.models.common import Option
 from app.authentication.models.pydantic import UserCreate
+from app.pydantic import OptionTemplate
 
 
 
@@ -72,7 +74,7 @@ async def insert_perms():
     return success
 
 
-async def insert_accounts(*, verified: int, unverified: int):
+async def insert_accounts(*, verified: int, unverified: int) -> None:
     """Create users."""
     with open('/usr/share/dict/cracklib-small', 'r') as w:
         words = w.read().splitlines()
@@ -111,6 +113,18 @@ async def insert_accounts(*, verified: int, unverified: int):
         for email in ll:
             await create_user(email, password)
             total += 1
+            
+        # Options
+        opt_templates = await Option.get_templates()
+        new_accounts = await Account.filter(Q(account_options=None))\
+            .values_list('id', flat=True)
+        
+        ll = []
+        for id in new_accounts:
+            for k, v in (opt_templates.dict()).items():
+                ll.append(Option(name=k, value=v, optiontype='account', account_id=id))
+        await Option.bulk_create(ll)
+        
     except ValidationError:
         pass
     

@@ -54,7 +54,7 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
 
     async def on_after_request_verify(self, user: UserDB, token: str, request: Optional[Request] = None):
         # ic(f"Verification requested for user {user.id}. Verification token: {token}")
-        ic('Send verification email to user now.')
+        ic(f'Send verification email to for {user.id}')
 
 
 async def get_user_db():
