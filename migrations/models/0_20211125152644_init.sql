@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS "auth_account" (
     "zipcode" VARCHAR(20) NOT NULL  DEFAULT '',
     "timezone" VARCHAR(10) NOT NULL  DEFAULT '+08:00',
     "currency" VARCHAR(5) NOT NULL  DEFAULT 'PHP',
+    "lang" VARCHAR(2) NOT NULL  DEFAULT 'en',
     "metadata" JSONB
 );
 CREATE INDEX IF NOT EXISTS "idx_auth_accoun_deleted_112596" ON "auth_account" ("deleted_at");

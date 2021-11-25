@@ -27,6 +27,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     zipcode = f.CharField(max_length=20, default='')
     timezone = f.CharField(max_length=10, default=s.USER_TIMEZONE)
     currency = f.CharField(max_length=5, default=s.CURRENCY_ACCOUNT)
+    lang = f.CharField(max_length=2, default='en')
     metadata = f.JSONField(null=True)
 
     groups = f.ManyToManyField('models.Group', related_name='group_accounts',
@@ -53,7 +54,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     def fullname(self):
         return f'{self.firstname} {self.lastname}'.strip()
 
-    # TODO: Revise this. This is still the orig code from stonks
+    # TODO: Revise as needed
     async def to_dict(self, exclude: Optional[List[str]] = None, prefetch: bool = False) -> dict:
         """
         Converts instance into a dict.
