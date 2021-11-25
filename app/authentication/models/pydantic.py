@@ -10,13 +10,14 @@ from .account import Account
 
 class User(models.BaseUser):
     """
-    Data you want visible in the User pydantic model.
+    Data you want visible in the current_user dependency. Each must have a default value or
+    the sky will fall on your head, your disk get corrupted, and you will get a girlfriend.
     """
-    username: str
-    # display: str
-    # timezone: str
-    # currency: str
-    # pass
+    username: str = ''
+    timezone: str = s.USER_TIMEZONE
+    lang: str = 'en'
+    display: str = ''
+    currency: str = s.CURRENCY_ACCOUNT
 
 
 class UserCreate(models.BaseUserCreate):
@@ -36,6 +37,7 @@ class UserUpdate(models.BaseUserUpdate):
 
 
 class UserDB(User, models.BaseUserDB, PydanticModel):
+    # display: str
     # username: Optional[str] = ''
     # firstname: Optional[str] = ''
     # midname: Optional[str] = ''
