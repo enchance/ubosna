@@ -5,9 +5,10 @@ from pydantic import EmailStr, ValidationError
 
 from .data import *
 from .perms import *
-from app import ic, settings as s, red
+from app import ic, settings as s, red, cache
 from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
+from app.authentication.models.common import Option
 from app.authentication.models.pydantic import UserCreate
 
 
@@ -112,12 +113,33 @@ async def insert_accounts(*, verified: int, unverified: int):
             total += 1
     except ValidationError:
         pass
+    
+    # TODO: Get options with type of template and save them for each account under the type of "account"
         
     return [f'{total} accounts created.']
 
 
 async def insert_options():
-    return []
+    optdb = await Option.all().values_list('name', flat=True)
+    
+    ll = []
+    for optiontype, val in options_dict.items():
+        for k, v in val.items():
+            # Prevent multiple inserts
+            if k in optdb:
+                continue
+            ll.append(Option(name=k, value=v, optiontype=optiontype))
+    await Option.bulk_create(ll)
+    
+    # Cache
+    partialkey = s.CACHE_OPTION_SITE
+    red.set(partialkey, cache.makesafe_dict(options_dict['site']), clear=True)
+    partialkey = s.CACHE_OPTION_ADMIN
+    red.set(partialkey, cache.makesafe_dict(options_dict['admin']), clear=True)
+    partialkey = s.CACHE_OPTION_TEMPLATE
+    red.set(partialkey, cache.makesafe_dict(options_dict['template']), clear=True)
+    
+    return ['Options created.']
 
 
 async def insert_taxos():
@@ -136,10 +158,10 @@ async def init(
         success += await insert_groups()
     if perms:
         success += await insert_perms()
-    if accounts:
-        success += await insert_accounts(verified=verified, unverified=unverified)
     if options:
         success += await insert_options()
+    if accounts:
+        success += await insert_accounts(verified=verified, unverified=unverified)
     if taxos:
         success += await insert_taxos()
     return success

@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS "core_option" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(20) NOT NULL,
     "value" VARCHAR(191) NOT NULL,
-    "optiontype" SMALLINT NOT NULL  DEFAULT 1,
+    "optiontype" VARCHAR(10) NOT NULL,
     "is_active" BOOL NOT NULL  DEFAULT True,
     "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
 );

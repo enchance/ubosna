@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Any
 from ast import literal_eval
 from limeutils import Red
 
@@ -10,19 +10,29 @@ from app import settings as s, ic
 red = Red(**s.CACHE_CONFIG.get('default'))
 
 
-def makesafe(val) -> Union[str, int]:
+def makesafe(val: Any) -> Union[str, int]:
     """
-    Moke lists, sets, and bool safe as a string. Used for hash values.
-    This literally adds quotes to make it safe for saving as a hash value in redis.
+    Make data safe for redis.
     :param val: Item to make into a string
     :return:    str
     """
-    if isinstance(val, (list, dict)):
+    if isinstance(val, (list, set, tuple, dict)):
         return repr(val)
     elif isinstance(val, bool):
         return int(val)
     else:
         return str(val)
+    
+def makesafe_dict(data: dict):
+    """
+    Make an entire dict safe for redis.
+    :param data: dict to modify
+    :return:
+    """
+    d = {}
+    for k, v in data.items():
+        d[k] = makesafe(v)
+    return d
 
 def prepareuser_dict(user_dict: dict, exclude: Optional[List[str]] = None) -> dict:
     """

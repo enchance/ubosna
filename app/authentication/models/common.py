@@ -72,7 +72,7 @@ class Taxo(SharedMixin, DTBaseModel):
 class Option(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=20)
     value = f.CharField(max_length=191)
-    optiontype = f.SmallIntField(default=1)
+    optiontype = f.CharField(max_length=10)
     
     is_active = f.BooleanField(default=True)
     account = f.ForeignKeyField('models.Account', related_name='account_options', null=True, on_delete=f.CASCADE)

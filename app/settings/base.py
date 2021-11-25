@@ -50,6 +50,9 @@ class Base(BaseSettings):
     CACHE_USERNAME: str = 'account-{}'
     CACHE_TAXONOMY: str = 'tax-{}-{}'
     CACHE_TAXONOMY_SEARCH: str = 'tax-{}-*'
+    CACHE_OPTION_SITE: str = 'option-site'
+    CACHE_OPTION_ADMIN: str = 'option-admin'
+    CACHE_OPTION_TEMPLATE: str = 'option-template'
     
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)
