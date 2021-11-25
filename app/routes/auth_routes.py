@@ -19,6 +19,8 @@ async def login(
         response: Response, credentials: OAuth2PasswordRequestForm = Depends(),
         user_manager: BaseUserManager[models.UC, models.UD] = Depends(get_user_manager),
 ):
+    # TODO: Check if active user
+    # TODO: Check if verified user
     user = await user_manager.authenticate(credentials)
     if user is None or not user.is_active:
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_BAD_CREDENTIALS)

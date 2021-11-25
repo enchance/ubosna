@@ -107,7 +107,6 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             # usermod = await query.only(*userdb.select_fields)
             
             user_dict = await account.to_dict(prefetch=True)
-            ic(user_dict)
             partialkey = s.CACHE_USERNAME.format(id)
             user_dict = cache.prepareuser_dict(user_dict)
             red.set(partialkey, cache.prepareuser_dict(user_dict), clear=True)

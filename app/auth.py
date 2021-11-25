@@ -13,6 +13,7 @@ from .authentication.models.account import Account, Group
 from .authentication.models.pydantic import User, UserCreate, UserUpdate, UserDB
 
 
+# TODO: If unverified user signs in, allow it but with limited access
 
 async def setup_account(account: Account, user: UserDB):
     email, username = itemgetter('email', 'username')(user.dict())
@@ -57,12 +58,12 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
 
 
 async def get_user_db():
+    """Dependency"""
     yield TortoiseUserDatabase(UserDB, Account)
 
-
 async def get_user_manager(user_db=Depends(get_user_db)):
+    """Dependency"""
     yield UserManager(user_db)
-
 
 get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
@@ -82,4 +83,6 @@ async def create_user(email: str, password: str, *, username: str = '', is_super
 
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
 fusers = FastAPIUsers(get_user_manager, [jwtauth], User, UserCreate, UserUpdate, UserDB)
-current_user = fusers.current_user()
+
+current_user = fusers.current_user(active=True, verified=True)
+active_user = fusers.current_user(active=True)
