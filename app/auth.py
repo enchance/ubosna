@@ -9,8 +9,9 @@ from fastapi_users.manager import UserAlreadyExists
 from pydantic import EmailStr
 
 from app import settings as s, ic, red, cache
-from .authentication.models.account import Account, Group
-from .authentication.models.pydantic import User, UserCreate, UserUpdate, UserDB
+from .authentication.models.account import *
+from .authentication.models.common import *
+from .authentication.models.pydantic import *
 
 
 # TODO: If unverified user signs in, allow it but with limited access

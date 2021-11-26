@@ -1,6 +1,7 @@
-from typing import Optional, Union
+from typing import Optional, Union, List
 from fastapi import APIRouter, Response, Query, Path, Depends
 from tortoise.query_utils import Prefetch, Q
+from pydantic import validate_arguments
 
 from app import settings as s, ic
 from app.auth import current_user
@@ -10,10 +11,17 @@ from app.authentication.models.common import Option
 
 devrouter = APIRouter()
 
+@validate_arguments
+def foobar(*args: str):
+    return args
+
 @devrouter.get('/')
 async def index(_: Response):
-    id = '684f0bf2-bb11-4405-a7ca-a217c39b6771'
-    account = await Account.get(id=id)
+    return foobar('a', 'b')
+    
+    # id = '684f0bf2-bb11-4405-a7ca-a217c39b6771'
+    # account = await Account.get(id=id)
+    
     # return await Account.get_and_cache(account.id)
     
     # perms1 = await Perm.get_perms('AccountGroup')
