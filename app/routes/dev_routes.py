@@ -40,7 +40,7 @@ async def index(_: Response):
     # return [data1, data2]
     
     # return await account.get
-    # dbperms = await Perm.filter(perm_groups__name__in=['AccountGroup'])\
+    # dbperms = await Perm.filter(permgroups__name__in=['AccountGroup'])\
     #     .values_list('code', flat=True)
     # return dbperms
     # perms = await Perm.get_perms('AccountGroup', 'ModGroupSet')
@@ -56,7 +56,7 @@ async def index(_: Response):
     # ic(y)
     
     # x = await Account.all().values_list('id', flat=True)
-    # x = await Account.filter(Q(account_options=None)).distinct().values_list('id', flat=True)
+    # x = await Account.filter(Q(accountoptions=None)).distinct().values_list('id', flat=True)
     # return x
     
     return s.TESTDATA

@@ -11,6 +11,8 @@ from app.authentication.models.common import DTBaseModel, SharedMixin
 from app.utils import flatten_query_result
 from .manager import CuratorManager
 
+# TODO: Move Account fields to Profile model instead
+
 
 class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     username = f.CharField(max_length=50, default='')
@@ -263,7 +265,7 @@ class Perm(DTBaseModel):
 
         # Check db if not in cache
         if in_db:
-            dbperms = await cls.filter(perm_groups__name__in=in_db).values_list('code', flat=True)
+            dbperms = await cls.filter(permgroups__name__in=in_db).values_list('code', flat=True)
             perms.extend(dbperms)
         return perms
 
@@ -273,7 +275,7 @@ class Group(DTBaseModel):
     description = f.CharField(max_length=191, default='')
     deleted_at = None
     
-    perms = f.ManyToManyField('models.Perm', related_name='perm_groups',
+    perms = f.ManyToManyField('models.Perm', related_name='permgroups',
                               through='auth_xgroupperms',
                               backward_key='group_id', forward_key='perm_id')
 
@@ -313,7 +315,7 @@ class Token(DTBaseModel):
     token = f.CharField(max_length=128, unique=True)
     expires = f.DatetimeField(index=True)
     is_blacklisted = f.BooleanField(default=False)
-    account = f.ForeignKeyField('models.Account', related_name='account_tokens', on_delete=f.CASCADE)
+    account = f.ForeignKeyField('models.Account', related_name='accounttokens', on_delete=f.CASCADE)
     deleted_at = None
 
     og = manager.Manager()

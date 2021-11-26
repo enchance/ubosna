@@ -116,8 +116,7 @@ async def insert_accounts(*, verified: int, unverified: int):
             
         # Options
         opt_templates = await Option.get_templates()
-        new_accounts = await Account.filter(Q(account_options=None))\
-            .values_list('id', flat=True)
+        new_accounts = await Account.filter(accountoptions=None).values_list('id', flat=True)
         
         ll = []
         for id in new_accounts:

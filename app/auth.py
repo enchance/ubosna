@@ -12,6 +12,7 @@ from app import settings as s, ic, red, cache
 from .authentication.models.account import *
 from .authentication.models.common import *
 from .authentication.models.pydantic import *
+from .authentication.models.manager import *
 
 
 # TODO: If unverified user signs in, allow it but with limited access

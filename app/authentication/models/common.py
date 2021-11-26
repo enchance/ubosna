@@ -46,7 +46,7 @@ class Taxo(SharedMixin, DTBaseModel):
     display = f.CharField(max_length=50, default='')
     description = f.CharField(max_length=191, default='')
     sort = f.SmallIntField(default=100)
-    parent = f.ForeignKeyField('models.Taxo', related_name='parent_taxos', null=True, on_delete=f.CASCADE)
+    parent = f.ForeignKeyField('models.Taxo', related_name='parenttaxos', null=True, on_delete=f.CASCADE)
     taxotype = f.CharField(max_length=10, index=True)       # TaxoTypeChoices
 
     is_active = f.BooleanField(default=True)
@@ -77,7 +77,7 @@ class Option(SharedMixin, DTBaseModel):
     optiontype = f.CharField(max_length=10, index=True)
     
     is_active = f.BooleanField(default=True)
-    account = f.ForeignKeyField('models.Account', related_name='account_options', null=True, on_delete=f.CASCADE)
+    account = f.ForeignKeyField('models.Account', related_name='accountoptions', null=True, on_delete=f.CASCADE)
     deleted_at = None
 
     og = manager.Manager()
@@ -121,7 +121,7 @@ class Media(SharedMixin, DTBaseModel):
     mediatype = f.SmallIntField(default=1, index=True)
     
     is_active = f.BooleanField(default=True)
-    account = f.ForeignKeyField('models.Account', related_name='account_media', on_delete=f.CASCADE)
+    account = f.ForeignKeyField('models.Account', related_name='accountmedia', on_delete=f.CASCADE)
     metadata = f.JSONField(null=True)
 
     og = manager.Manager()
