@@ -58,6 +58,20 @@ class Security(SharedMixin, DTBaseModel):
         manager = CuratorManager()
 
 
+# TODO: Unfinished
+class Pool(SharedMixin, DTBaseModel):
+    amount = f.IntField(max_digits=18, decimal_places=8, null=True)
+    currency = f.CharField(max_length=3, null=True)
+    account = f.ForeignKeyField('models.Account', related_name='accountpools', on_delete=f.CASCADE)
+
+    og = manager.Manager()
+
+    class Meta:
+        table = 'trades_pool'
+        manager = CuratorManager()
+        
+        
+# TODO: Unfinished
 class Trade(SharedMixin, DTBaseModel):
     security = f.ForeignKeyField('models.Security', related_name='securitytrades',
                                  on_delete=f.SET_NULL, null=True)
@@ -80,8 +94,8 @@ class Trade(SharedMixin, DTBaseModel):
     # stash = f.ForeignKeyField('models.Stash', related_name='trades')
     #
     #
-    # basetrade: FKRel['Trade'] = f.ForeignKeyField('models.Trade', related_name='basetrade_trades',
-    #                                       null=True)
+    tradegroup = f.UUIDField(generated=False)
+    pool: f.ForeignKeyField('models.Pool', related_name='pooltrades', on_delete=f.CASCADE)
     #
     # is_resolved = f.BooleanField(default=True, index=True)
     # author: FKRel['UserMod'] = f.ForeignKeyField('models.UserMod', related_name='author_trades')
