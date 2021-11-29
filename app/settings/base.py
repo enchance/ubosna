@@ -64,7 +64,6 @@ class Base(BaseSettings):
     EMAIL_SENDER: EmailStr = os.getenv('EMAIL_HOST_USER')
     USER_TIMEZONE: str = os.getenv('USER_TIMEZONE', '+08:00')
     USER_GROUPS: List[str] = ['AccountGroup', 'TradeGroup']
-    GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
     
     # Email
     EMAIL_PORT: int = os.getenv('EMAIL_PORT')
@@ -74,6 +73,10 @@ class Base(BaseSettings):
     
     # Others
     PROGRAM_OVERLORDS: str = 'DropkickDev'
+    
+    # API
+    GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
+    COINMARKETCAP_KEY = os.getenv('COINMARKETCAP_KEY')
     
     # Form/Notice URLs
     # NOTICE_HEADER: dict = {'X-Allow-Notice': 'true'}
