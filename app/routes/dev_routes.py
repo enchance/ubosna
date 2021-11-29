@@ -1,3 +1,4 @@
+import requests
 from typing import Optional, Union, List
 from fastapi import APIRouter, Response, Query, Path, Depends
 from tortoise.query_utils import Prefetch, Q
@@ -17,7 +18,7 @@ def foobar(*args: str):
 
 @devrouter.get('/')
 async def index(_: Response):
-    return foobar('a', 'b')
+    # return foobar('a', 'b')
     
     # id = '684f0bf2-bb11-4405-a7ca-a217c39b6771'
     # account = await Account.get(id=id)
@@ -75,3 +76,19 @@ def create_cookie(res: Response):
 @devrouter.get('/private')
 async def private(account=Depends(current_user)):
     return account
+
+# # INCOMPLETE: Work in progress...
+# @devrouter.get('/apicall')
+# async def api():
+#     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+#     params = {
+#         'start': '1',
+#         'limit': '10',
+#         'convert': 'USD'
+#     }
+#     headers = {
+#         'Accepts': 'application/json',
+#         'X-CMC_PRO_API_KEY': s.COINMARKETCAP_KEY,
+#     }
+#     apidata = requests.get(url, params=params, headers=headers)
+#     ic(apidata.text)

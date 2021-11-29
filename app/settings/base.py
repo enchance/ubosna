@@ -55,6 +55,8 @@ class Base(BaseSettings):
     CACHE_OPTION_TEMPLATE: str = 'option-template'
     CACHE_TAXO_TAG_TEMPLATE: str = 'taxo-tags'
     CACHE_TAXO_CAT_TEMPLATE: str = 'taxo-cats'
+    CACHE_TAXO_FIAT: str = 'taxo-fiat'
+    CACHE_TAXO_CRYPTO: str = 'taxo-crypto'
     
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)

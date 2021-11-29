@@ -44,10 +44,11 @@ class SharedMixin(object):
 class Taxo(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=50)
     display = f.CharField(max_length=50, default='')
+    label = f.CharField(max_length=191, default='')
     description = f.CharField(max_length=191, default='')
     sort = f.SmallIntField(default=100)
     parent = f.ForeignKeyField('models.Taxo', related_name='parenttaxos', null=True, on_delete=f.CASCADE)
-    taxotype = f.CharField(max_length=10, index=True)       # TaxoTypeChoices
+    taxotype = f.CharField(max_length=10, index=True)
 
     is_active = f.BooleanField(default=True)
     is_global = f.BooleanField(default=False)

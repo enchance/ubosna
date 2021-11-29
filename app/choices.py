@@ -19,11 +19,6 @@ class PermChoices(Enum):
     group = 'group'
     
 
-class TaxoTypeChoices(IntEnum):
-    generic = 1
-    category = 2
-    tag = 3
-
 class OptionTypeChoices(IntEnum):
     generic = 1
     

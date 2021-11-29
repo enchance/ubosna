@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS "core_taxo" (
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(50) NOT NULL,
     "display" VARCHAR(50) NOT NULL  DEFAULT '',
+    "label" VARCHAR(191) NOT NULL  DEFAULT '',
     "description" VARCHAR(191) NOT NULL  DEFAULT '',
     "sort" SMALLINT NOT NULL  DEFAULT 100,
     "taxotype" VARCHAR(10) NOT NULL,
@@ -152,14 +153,25 @@ CREATE TABLE IF NOT EXISTS "trades_xaccountbrokers" (
     "broker_id" INT NOT NULL REFERENCES "trades_broker" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_trades_xacc_deleted_a95d16" ON "trades_xaccountbrokers" ("deleted_at");
+CREATE TABLE IF NOT EXISTS "trades_pool" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "deleted_at" TIMESTAMPTZ,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "amount" INT,
+    "currency" VARCHAR(3),
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "idx_trades_pool_deleted_5ce4d3" ON "trades_pool" ("deleted_at");
 CREATE TABLE IF NOT EXISTS "trades_security" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "deleted_at" TIMESTAMPTZ,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "ticker" VARCHAR(10) NOT NULL,
-    "label" VARCHAR(191) NOT NULL,
-    "securitytype" VARCHAR(10) NOT NULL  DEFAULT 'stock'
+    "name" VARCHAR(10) NOT NULL,
+    "label" VARCHAR(191) NOT NULL  DEFAULT '',
+    "tickertype" VARCHAR(10) NOT NULL  DEFAULT 'crypto',
+    "metadata" JSONB
 );
 CREATE INDEX IF NOT EXISTS "idx_trades_secu_deleted_dd0c04" ON "trades_security" ("deleted_at");
 CREATE TABLE IF NOT EXISTS "trades_trade" (
@@ -171,19 +183,23 @@ CREATE TABLE IF NOT EXISTS "trades_trade" (
     "price" DECIMAL(16,8),
     "amount" INT,
     "gross" DECIMAL(12,4)   DEFAULT 0,
-    "fees" DECIMAL(12,4)   DEFAULT 0,
+    "basefees" DECIMAL(12,4),
+    "quotefees" DECIMAL(12,4),
     "total" DECIMAL(10,4)   DEFAULT 0,
-    "status" VARCHAR(20) NOT NULL  DEFAULT '',
-    "currency" VARCHAR(3),
-    "note" VARCHAR(255) NOT NULL  DEFAULT '',
     "tradetype" VARCHAR(20) NOT NULL,
+    "status" VARCHAR(20) NOT NULL  DEFAULT '',
+    "note" VARCHAR(255) NOT NULL  DEFAULT '',
     "leverage" SMALLINT,
+    "exchange" VARCHAR(191) NOT NULL,
     "metadata" JSONB,
     "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
-    "broker_id" INT REFERENCES "trades_broker" ("id") ON DELETE SET NULL,
-    "security_id" INT REFERENCES "trades_security" ("id") ON DELETE SET NULL
+    "base_id" INT NOT NULL REFERENCES "core_taxo" ("id") ON DELETE CASCADE,
+    "broker_id" INT NOT NULL REFERENCES "trades_broker" ("id") ON DELETE CASCADE,
+    "pool_id" INT NOT NULL REFERENCES "trades_pool" ("id") ON DELETE CASCADE,
+    "quote_id" INT NOT NULL REFERENCES "core_taxo" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_trades_trad_deleted_16353f" ON "trades_trade" ("deleted_at");
+CREATE INDEX IF NOT EXISTS "idx_trades_trad_action_e7fe84" ON "trades_trade" ("action");
 CREATE TABLE IF NOT EXISTS "trades_xtradetags" (
     "trade_id" INT NOT NULL REFERENCES "trades_trade" ("id") ON DELETE CASCADE,
     "taxo_id" INT NOT NULL REFERENCES "core_taxo" ("id") ON DELETE CASCADE
