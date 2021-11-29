@@ -129,13 +129,12 @@ CREATE TABLE IF NOT EXISTS "trades_broker" (
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
     "name" VARCHAR(191) NOT NULL UNIQUE,
-    "short" VARCHAR(10) NOT NULL  DEFAULT '',
+    "label" VARCHAR(191) NOT NULL  DEFAULT '',
     "brokerno" VARCHAR(191) NOT NULL  DEFAULT '',
     "site" VARCHAR(255) NOT NULL  DEFAULT '',
     "currency" VARCHAR(5) NOT NULL  DEFAULT 'USD',
     "is_active" BOOL NOT NULL  DEFAULT True,
     "metadata" JSONB,
-    "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "logo_id" INT NOT NULL REFERENCES "core_media" ("id") ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "idx_trades_brok_deleted_7af817" ON "trades_broker" ("deleted_at");

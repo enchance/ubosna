@@ -10,6 +10,7 @@ from app import ic, settings as s, red, cache
 from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
 from app.authentication.models.common import Option, Taxo
+from trades.models import *
 from app.authentication.models.pydantic import UserCreate
 from app.pydantic import OptionTemplate
 
@@ -158,8 +159,11 @@ async def insert_taxos():
     ll = []
     fiatlist = []
     cryptolist = []
+    brokerlist = []
     
-    tickerlist = await Taxo.filter(Q(taxotype='fiat') | Q(taxotype='cypto')).values('name', 'taxotype')
+    tickerlist = await Taxo.filter(
+        Q(taxotype='fiat') | Q(taxotype='cypto')
+    ).values('name', 'taxotype')
     for i in tickerlist:
         if i['taxotype'] == 'fiat':
             fiatlist.append(i)
@@ -181,6 +185,7 @@ async def insert_taxos():
         if name in fiatlist:
             continue
         ll.append(Taxo(name=name, label=label, taxotype='fiat'))
+        fiatlist.append(name)
     partialkey = s.CACHE_TAXO_FIAT
     red.set(partialkey, fiatlist, clear=True)
 
@@ -189,6 +194,7 @@ async def insert_taxos():
         if name in fiatlist:
             continue
         ll.append(Taxo(name=name, label=label, taxotype='crypto'))
+        cryptolist.append(name)
     partialkey = s.CACHE_TAXO_CRYPTO
     red.set(partialkey, cryptolist, clear=True)
     
@@ -197,12 +203,27 @@ async def insert_taxos():
     return ['Taxos created.']
 
 
+async def insert_brokers():
+    ll = []
+    brokerlist = await Broker.all().values_list('name', flat=True)
+    for name, label in broker_dict.items():
+        if name in brokerlist:
+            continue
+        ll.append(Broker(name=name, label=label))
+        brokerlist.append(name)
+    ll and await Broker.bulk_create(ll)
+    partialkey = s.CACHE_TAXO_BROKER
+    red.set(partialkey, brokerlist, clear=True)
+    
+    return ['Brokers created.']
+
+
 @atomic
 @fixturerouter.get('/init', summary='Initial data for the site')
 async def init(
         verified: int = 4, unverified: int = 3,
         accounts: bool = True, groups: bool = True, perms: bool = True,
-        options: bool = True, taxos: bool = True
+        options: bool = True, taxos: bool = True, brokers: bool = True
 ):
     success = []
     if groups:
@@ -217,6 +238,8 @@ async def init(
         success += await insert_taxos()
     if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
+    if brokers:
+        success += await insert_brokers()
     return success
     
 

@@ -8,15 +8,14 @@ from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media
 
 class Broker(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=191, unique=True)
-    short = f.CharField(max_length=10, default='')
+    label = f.CharField(max_length=191, default='')
     brokerno = f.CharField(max_length=191, default='')
-    logo = f.ForeignKeyField('models.Media', related_name='logobrokers')
+    logo = f.ForeignKeyField('models.Media', related_name='logobrokers', on_delete=f.CASCADE)
     site = f.CharField(max_length=255, default='')
     currency = f.CharField(max_length=5, default=s.CURRENCY_BROKER)
     
     is_active = f.BooleanField(default=True)
     metadata = f.JSONField(null=True)
-    author = f.ForeignKeyField('models.Account', related_name='author_brokers', on_delete=f.CASCADE)
 
     og = manager.Manager()
     
