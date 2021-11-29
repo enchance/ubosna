@@ -154,19 +154,45 @@ async def insert_options():
 
 
 async def insert_taxos():
-    taxodb = await Taxo.filter(taxotype='tag').values_list('name', flat=True)
     
     ll = []
-    for tag in taxos_dict['global']['tags']:
-        # Prevent multiple inserts
-        if tag in taxodb:
-            continue
-        ll.append(Taxo(name=tag, taxotype='tag', is_global=True))
-    ll and await Taxo.bulk_create(ll)
+    fiatlist = []
+    cryptolist = []
     
-    # Cache
+    tickerlist = await Taxo.filter(Q(taxotype='fiat') | Q(taxotype='cypto')).values('name', 'taxotype')
+    for i in tickerlist:
+        if i['taxotype'] == 'fiat':
+            fiatlist.append(i)
+        elif i['taxotype'] == 'crypto':
+            cryptolist.append(i)
+    
+    # Tags
+    query = set(await Taxo.filter(taxotype='tag').values_list('name', flat=True))
+    for i in taxos_dict['global']['tags']:
+        if i in query:
+            continue
+        ll.append(Taxo(name=i, taxotype='tag', is_global=True))
     partialkey = s.CACHE_TAXO_TAG_TEMPLATE
     red.set(partialkey, taxos_dict['global']['tags'], clear=True)
+
+    
+    # Fiat
+    for name, label in taxos_dict['fiat'].items():
+        if name in fiatlist:
+            continue
+        ll.append(Taxo(name=name, label=label, taxotype='fiat'))
+    partialkey = s.CACHE_TAXO_FIAT
+    red.set(partialkey, fiatlist, clear=True)
+
+    # Crypto
+    for name, label in taxos_dict['crypto'].items():
+        if name in fiatlist:
+            continue
+        ll.append(Taxo(name=name, label=label, taxotype='crypto'))
+    partialkey = s.CACHE_TAXO_CRYPTO
+    red.set(partialkey, cryptolist, clear=True)
+    
+    ll and await Taxo.bulk_create(ll)
     
     return ['Taxos created.']
 
