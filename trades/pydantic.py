@@ -1,23 +1,24 @@
 from pydantic import BaseModel
+from .choices import ActionChoices
 
 
 
 
-class TradePM(BaseModel):
-    base: int
-    quote: int
-    pool: int
-    broker: int
+class TransactPM(BaseModel):
+    action: str
     price: float
-    amount: float
-    gross: float
-    total: float
-    tradetype: str
+    basecurr: str
+    quotecurr: str
+    fee: float
 
-class BuyTradePM(TradePM):
-    action: str = 'buy'
-    buyfees: float
 
-class SellTradePM(TradePM):
-    action: str = 'sell'
-    sellfees: float
+class TradeCryptoPM(TransactPM):
+    pass
+
+# class BuyTradePM(TradePM):
+#     action: str = 'buy'
+#     buyfees: float
+#
+# class SellTradePM(TradePM):
+#     action: str = 'sell'
+#     sellfees: float

@@ -1,8 +1,10 @@
 from tortoise import fields as f, manager
-from limeutils import modstr
+from limeutils import modstr, reverse_choices
 
 from app import settings as s
 from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media
+from .pydantic import TradeCryptoPM
+from .choices import ActionChoices
 
 
 
@@ -60,8 +62,10 @@ class Ticker(SharedMixin, DTBaseModel):
 
 # INCOMPLETE: Work in progress...
 class Pool(SharedMixin, DTBaseModel):
-    amount = f.IntField(max_digits=18, decimal_places=8, null=True)
-    currency = f.CharField(max_length=3, null=True)
+    amount = f.DecimalField(max_digits=20, decimal_places=8)
+    currency = f.CharField(max_length=20)
+    # Cost Averaging
+    price = f.DecimalField(max_digits=18, decimal_places=8, default=0, null=True)
     account = f.ForeignKeyField('models.Account', related_name='accountpools', on_delete=f.CASCADE)
     # divider = f.SmallIntField(default=1)    # Impt for getting the average
 
@@ -78,30 +82,31 @@ class Pool(SharedMixin, DTBaseModel):
         
         
 class Trade(SharedMixin, DTBaseModel):
-    base = f.ForeignKeyField('models.Taxo', related_name='basetrades',
-                             on_delete=f.CASCADE)   # ETH/usdt
-    quote = f.ForeignKeyField('models.Taxo', related_name='quotetrades',
-                              on_delete=f.CASCADE)  # eth/USDT
-    pool = f.ForeignKeyField('models.Pool', related_name='pooltrades', on_delete=f.CASCADE)
-    broker = f.ForeignKeyField('models.Broker', related_name='brokertrades', on_delete=f.CASCADE)
-    # tradegroup = f.UUIDField(generated=False)
+    action = f.SmallIntField(index=True)  # 1: buy, 2: sell
+    price = f.DecimalField(max_digits=23, decimal_places=8)
+    basecurr = f.CharField(max_length=20, index=True)   # ETH/usdt
+    quotecurr = f.CharField(max_length=20, index=True)   # eth/USDT
     
-    action = f.CharField(max_length=10, index=True)  # buy, sell
-    price = f.DecimalField(max_digits=16, decimal_places=8, null=True)
-    amount = f.IntField(max_digits=18, decimal_places=8, null=True)
-    gross = f.DecimalField(max_digits=12, decimal_places=4, default=0, null=True)
-    basefees = f.DecimalField(max_digits=12, decimal_places=4, default=None, null=True)
-    quotefees = f.DecimalField(max_digits=12, decimal_places=4, default=None, null=True)
-    total = f.DecimalField(max_digits=10, decimal_places=4, default=0, null=True)
-    tradetype = f.CharField(max_length=20)      # crypto, stock
+    buyamount = f.DecimalField(max_digits=23, decimal_places=8)
+    storedamount = f.DecimalField(max_digits=23, decimal_places=8)
+    gross = f.DecimalField(max_digits=23, decimal_places=8)   # quotecurr
+    feesmain = f.DecimalField(max_digits=23, decimal_places=8, default=None, null=True)
+    feescurr = f.CharField(max_length=10)   # basecurr
+    total = f.DecimalField(max_digits=23, decimal_places=8, default=0, null=True)
+    leverage = f.SmallIntField(default=None, null=True)
+    
+    tradetype = f.CharField(max_length=20, index=True)      # crypto, stock
     status = f.CharField(max_length=20, default='')  # complete, partial?
     note = f.CharField(max_length=255, default='')
-    leverage = f.SmallIntField(default=None, null=True)
-    exchange = f.CharField(max_length=191)
+    
+    pool = f.ForeignKeyField('models.Pool', related_name='pooltrades', on_delete=f.CASCADE)
+    broker = f.ForeignKeyField('models.Broker', related_name='brokertrades', on_delete=f.CASCADE)
+    exchange = f.ForeignKeyField('models.Taxo', related_name='exchangetrades', on_delete=f.CASCADE)
+    # tradegroup = f.UUIDField(generated=False)
     
     account = f.ForeignKeyField('models.Account', related_name='accounttrades', on_delete=f.CASCADE)
     metadata = f.JSONField(null=True)
-    tags = f.ManyToManyField('models.Taxo', related_name='tag_trades', through='trades_xtradetags',
+    tags = f.ManyToManyField('models.Taxo', related_name='tagtrades', through='trades_xtradetags',
                              backward_key='trade_id', forward_key='taxo_id')
 
     og = manager.Manager()
@@ -110,10 +115,29 @@ class Trade(SharedMixin, DTBaseModel):
         table = 'trades_trade'
         manager = CuratorManager()
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
     
     def __str__(self):
-        div = '' if self.tradetype == 'crypto' else '/'
-        name = f'{self.base.name.upper()}{div}{self.quote.name.upper()}'
-        return f'{self.action.capitalize()} {name}@{self.price}'
+        if self.tradetype == 'crypto':
+            name = f'{self.basecurr.upper()}{self.quotecurr.upper()}'
+        else:
+            name = self.basecurr.upper()
+        actionstr = reverse_choices(ActionChoices, self.action)         # noqa
+        return f'{actionstr.capitalize()} {name}@{self.price}'
+    
+    @classmethod
+    def buycrypto(cls, trade: TradeCryptoPM):
+        pass
+
+    @classmethod
+    def sellcrypto(cls, trade: TradeCryptoPM):
+        pass
+
+    @classmethod
+    def buystock(cls, trade: TradeCryptoPM):
+        pass
+
+    @classmethod
+    def sellstock(cls, trade: TradeCryptoPM):
+        pass
