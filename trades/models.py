@@ -51,6 +51,7 @@ class Ticker(SharedMixin, DTBaseModel):
     name = f.CharField(max_length=10)
     label = f.CharField(max_length=191, default='')
     tickertype = f.CharField(max_length=10, default='crypto')
+    exchange = f.ForeignKeyField('models.Taxo', related_name='exchangetickers', on_delete=f.CASCADE)
     metadata = f.JSONField(null=True)
 
     og = manager.Manager()
@@ -60,14 +61,16 @@ class Ticker(SharedMixin, DTBaseModel):
         manager = CuratorManager()
 
 
-# INCOMPLETE: Work in progress...
-class Pool(SharedMixin, DTBaseModel):
+class Archiver(DTBaseModel):
     amount = f.DecimalField(max_digits=20, decimal_places=8)
-    currency = f.CharField(max_length=20)
-    # Cost Averaging
-    price = f.DecimalField(max_digits=18, decimal_places=8, default=0, null=True)
+    pool = f.ForeignKeyField('models.Pool', related_name='poolarchives', on_delete=f.CASCADE)
+    
+
+class Pool(SharedMixin, DTBaseModel):
+    currency = f.CharField(max_length=20, index=True)
+    amount = f.DecimalField(max_digits=20, decimal_places=8)
+    costave = f.DecimalField(max_digits=23, decimal_places=8)
     account = f.ForeignKeyField('models.Account', related_name='accountpools', on_delete=f.CASCADE)
-    # divider = f.SmallIntField(default=1)    # Impt for getting the average
 
     og = manager.Manager()
 
@@ -76,8 +79,7 @@ class Pool(SharedMixin, DTBaseModel):
         manager = CuratorManager()
         
     # INCOMPLETE: Work in progress...
-    @classmethod
-    async def add(cls):
+    async def add(self):
         pass
         
         
@@ -104,6 +106,7 @@ class Trade(SharedMixin, DTBaseModel):
     exchange = f.ForeignKeyField('models.Taxo', related_name='exchangetrades', on_delete=f.CASCADE)
     # tradegroup = f.UUIDField(generated=False)
     
+    is_closed = f.BooleanField(default=False)       # closing your position resets the pool
     account = f.ForeignKeyField('models.Account', related_name='accounttrades', on_delete=f.CASCADE)
     metadata = f.JSONField(null=True)
     tags = f.ManyToManyField('models.Taxo', related_name='tagtrades', through='trades_xtradetags',
@@ -126,18 +129,22 @@ class Trade(SharedMixin, DTBaseModel):
         actionstr = reverse_choices(ActionChoices, self.action)         # noqa
         return f'{actionstr.capitalize()} {name}@{self.price}'
     
+    # INCOMPLETE: Work in progress...
     @classmethod
     def buycrypto(cls, trade: TradeCryptoPM):
         pass
 
+    # INCOMPLETE: Work in progress...
     @classmethod
     def sellcrypto(cls, trade: TradeCryptoPM):
         pass
 
+    # INCOMPLETE: Work in progress...
     @classmethod
     def buystock(cls, trade: TradeCryptoPM):
         pass
 
+    # INCOMPLETE: Work in progress...
     @classmethod
     def sellstock(cls, trade: TradeCryptoPM):
         pass
