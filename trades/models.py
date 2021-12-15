@@ -1,11 +1,14 @@
+from typing import Union
 from tortoise import fields as f, manager
 from limeutils import modstr, reverse_choices
 
 from app import settings as s
-from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media
-from .pydantic import TradeCryptoPM
+from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media, Taxo, Account
+from .pydantic import BuyCryptoPM
 from .choices import ActionChoices
 
+from . import get_quotecurr
+from .pydantic import TradePM
 
 
 class Broker(SharedMixin, DTBaseModel):
@@ -98,20 +101,19 @@ class Trade(SharedMixin, DTBaseModel):
     leverage = f.SmallIntField(default=None, null=True)
     
     tradetype = f.CharField(max_length=20, index=True)      # crypto, stock
-    status = f.CharField(max_length=20, default='')  # complete, partial?
+    status = f.CharField(max_length=20, default='')  # complete, ongoing?
     note = f.CharField(max_length=255, default='')
     
     pool = f.ForeignKeyField('models.Pool', related_name='pooltrades', on_delete=f.CASCADE)
     broker = f.ForeignKeyField('models.Broker', related_name='brokertrades', on_delete=f.CASCADE)
     exchange = f.ForeignKeyField('models.Taxo', related_name='exchangetrades', on_delete=f.CASCADE)
-    # tradegroup = f.UUIDField(generated=False)
     
-    is_closed = f.BooleanField(default=False)       # closing your position resets the pool
+    is_closed = f.BooleanField(default=False, index=True)   # closing your position resets the pool
     account = f.ForeignKeyField('models.Account', related_name='accounttrades', on_delete=f.CASCADE)
     metadata = f.JSONField(null=True)
+
     tags = f.ManyToManyField('models.Taxo', related_name='tagtrades', through='trades_xtradetags',
                              backward_key='trade_id', forward_key='taxo_id')
-
     og = manager.Manager()
     
     class Meta:
@@ -129,22 +131,43 @@ class Trade(SharedMixin, DTBaseModel):
         actionstr = reverse_choices(ActionChoices, self.action)         # noqa
         return f'{actionstr.capitalize()} {name}@{self.price}'
     
+    
+    @classmethod
+    async def trade(cls, trade_data: TradePM):
+        # d = {
+        #     'leverage': kwargs.get('leverage', 0),
+        #     'status': kwargs.get('status', 'ongoing'),
+        #     'note': kwargs.get('note', ''),
+        #     'is_closed': kwargs.get('is_closed', False),
+        #     'metadata': kwargs.get('metadata', {}),
+        #     'tags': kwargs.get('tags', None),
+        # }
+        return await cls.create(**trade_data.dict())
+
+    @classmethod
+    def _buy(cls):
+        pass
+    
+    @classmethod
+    def _sell(cls):
+        pass
+    
     # INCOMPLETE: Work in progress...
     @classmethod
-    def buycrypto(cls, trade: TradeCryptoPM):
+    def buycrypto(cls, trade: BuyCryptoPM):
         pass
 
     # INCOMPLETE: Work in progress...
     @classmethod
-    def sellcrypto(cls, trade: TradeCryptoPM):
+    def sellcrypto(cls, trade: BuyCryptoPM):
         pass
 
     # INCOMPLETE: Work in progress...
     @classmethod
-    def buystock(cls, trade: TradeCryptoPM):
+    def buystock(cls, trade: BuyCryptoPM):
         pass
 
     # INCOMPLETE: Work in progress...
     @classmethod
-    def sellstock(cls, trade: TradeCryptoPM):
+    def sellstock(cls, trade: BuyCryptoPM):
         pass
