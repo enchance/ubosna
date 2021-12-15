@@ -1,70 +1,30 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from pydantic import BaseModel
 
-from . import get_quotecurr
-from .choices import ActionChoices, TradeChoices
-from .models import Pool, Broker
-from app.auth import Account, Taxo
-
+from .choices import StatusChoices
 
 
 class TradePM(BaseModel):
+    # User input
+    action: str
     price: float
+    amount: float
     basecurr: str
-    
-    buyamount: float
-    storeamount: float
-    gross: float
-    feesmain: float
-    feescurr: str
-    total: float
-    leverage: Optional[int] = None
-    
-    status: str = 'ongoing'
+    quotecurr: str
     note: str = ''
-    
-    pool: Pool
-    broker: Broker
-    exchange: str
-    
+    account: Any
+    exchange: Optional[Any]
+    broker: Optional[Any]
+    tags: Optional[List[Any]]
+    leverage: Optional[int]
+
+    # Computed
+    storeamount: float = 0
+    gross: float = 0
+    feesmain: float = 0
+    feescurr: str = ''
+    total: float = 0
+    tradetype: str = ''
+    status: int = StatusChoices.ongoing
     is_closed: bool = False
-    account: Account
     metadata: dict = {}
-    
-    tags: Optional[List[Taxo]] = None
-
-
-class BuyCryptoPM(TradePM):
-    action: str = ActionChoices.buy
-    quotecurr: str = get_quotecurr()['crypto']
-    tradetype: str = TradeChoices.crypto
-
-
-class BuyStockPM(TradePM):
-    action: str = ActionChoices.buy
-    quotecurr: str = get_quotecurr()['stock']
-    tradetype: str = TradeChoices.stock
-
-
-class BuyForexPM(TradePM):
-    action: str = ActionChoices.buy
-    quotecurr: str = get_quotecurr()['forex']
-    tradetype: str = TradeChoices.forex
-
-
-class SellCryptoPM(TradePM):
-    action: str = ActionChoices.sell
-    quotecurr: str = get_quotecurr()['crypto']
-    tradetype: str = TradeChoices.crypto
-
-
-class SellStockPM(TradePM):
-    action: str = ActionChoices.sell
-    quotecurr: str = get_quotecurr()['stock']
-    tradetype: str = TradeChoices.stock
-
-
-class SellForexPM(TradePM):
-    action: str = ActionChoices.sell
-    quotecurr: str = get_quotecurr()['forex']
-    tradetype: str = TradeChoices.forex

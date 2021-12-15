@@ -108,7 +108,11 @@ class Option(SharedMixin, DTBaseModel):
         d = OptionTemplate(**d)
         red.set(partialkey, cache.makesafe_dict(d.dict()), clear=True)
         return d
-        
+    
+    @classmethod
+    async def get_option(cls, name: str):
+        # INCOMPLETE: Work in progress...
+        pass
 
 
 class Media(SharedMixin, DTBaseModel):

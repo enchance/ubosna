@@ -11,3 +11,9 @@ class TradeChoices(Enum):
     crypto = 'crypto'
     stock = 'stock'
     forex = 'forex'
+
+
+class StatusChoices(Enum):
+    ongoing = 'ongoing'
+    pending = 'pending'
+    complete = 'complete'

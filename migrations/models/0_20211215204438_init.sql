@@ -160,7 +160,8 @@ CREATE TABLE IF NOT EXISTS "trades_pool" (
     "currency" VARCHAR(20) NOT NULL,
     "amount" DECIMAL(20,8) NOT NULL,
     "costave" DECIMAL(23,8) NOT NULL,
-    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE
+    "account_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
+    CONSTRAINT "uid_trades_pool_account_bcd835" UNIQUE ("account_id", "currency")
 );
 CREATE INDEX IF NOT EXISTS "idx_trades_pool_deleted_5ce4d3" ON "trades_pool" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_trades_pool_currenc_85639a" ON "trades_pool" ("currency");
@@ -194,7 +195,7 @@ CREATE TABLE IF NOT EXISTS "trades_trade" (
     "price" DECIMAL(23,8) NOT NULL,
     "basecurr" VARCHAR(20) NOT NULL,
     "quotecurr" VARCHAR(20) NOT NULL,
-    "buyamount" DECIMAL(23,8) NOT NULL,
+    "amount" DECIMAL(23,8) NOT NULL,
     "storedamount" DECIMAL(23,8) NOT NULL,
     "gross" DECIMAL(23,8) NOT NULL,
     "feesmain" DECIMAL(23,8),
@@ -216,6 +217,7 @@ CREATE INDEX IF NOT EXISTS "idx_trades_trad_action_e7fe84" ON "trades_trade" ("a
 CREATE INDEX IF NOT EXISTS "idx_trades_trad_basecur_061e35" ON "trades_trade" ("basecurr");
 CREATE INDEX IF NOT EXISTS "idx_trades_trad_quotecu_1fbe6d" ON "trades_trade" ("quotecurr");
 CREATE INDEX IF NOT EXISTS "idx_trades_trad_tradety_ac4f40" ON "trades_trade" ("tradetype");
+CREATE INDEX IF NOT EXISTS "idx_trades_trad_is_clos_3c39ff" ON "trades_trade" ("is_closed");
 CREATE TABLE IF NOT EXISTS "trades_xtradetags" (
     "trade_id" INT NOT NULL REFERENCES "trades_trade" ("id") ON DELETE CASCADE,
     "taxo_id" INT NOT NULL REFERENCES "core_taxo" ("id") ON DELETE CASCADE

@@ -1,14 +1,13 @@
 from typing import Union
 from tortoise import fields as f, manager
+from tortoise.exceptions import BaseORMException, DoesNotExist
 from limeutils import modstr, reverse_choices
 
 from app import settings as s
 from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media, Taxo, Account
-from .pydantic import BuyCryptoPM
+from .pydantic import TradePM
 from .choices import ActionChoices
 
-from . import get_quotecurr
-from .pydantic import TradePM
 
 
 class Broker(SharedMixin, DTBaseModel):
@@ -31,6 +30,67 @@ class Broker(SharedMixin, DTBaseModel):
 
     def __str__(self):
         return modstr(self, 'name')
+
+    # TESTME: Untested
+    async def trade(self, trade_data: TradePM, action: ActionChoices):
+        """
+        Make a new trade with your trading data. You can use this directly but it's recommended to
+        any of the buy/sell class methods instead which are easier.
+        :param trade_data:  TradePM instance
+        :param action:      Buy/Sell value via ActionChoices
+        :return:            Trade
+        """
+        currency = action == ActionChoices.buy and trade_data.quotecurr or trade_data.basecurr
+        try:
+            pool = Pool.get(account=trade_data.account, currency=currency).only('id')
+        except DoesNotExist:
+            d = {
+                'currency': currency,
+                'amount': trade_data.amount,
+                'costave': trade_data.price,
+                'account': trade_data.account
+            }
+            pool = Pool.create(**d)
+
+        # TODO: Fill this up
+        trade_data.pool = pool
+        trade_data.exchange = trade_data.exchange or ''
+        trade_data.broker = trade_data.broker or self
+        trade_data.tags = trade_data.tags or None
+        trade_data.leverage = trade_data.leverage or None
+        # trade = self._compute_missing(trade_data)
+        # return await self.create(**trade.dict())
+
+    # @classmethod
+    # def _compute_missing(cls, trade: TradePM) -> TradePM:
+    #     # TODO: Fill in values
+    #     d = {
+    #         'storeamount': trade.storeamount or 0,
+    #         'gross': trade.gross or 0,
+    #         'feesmain': trade.feesmain or 0,
+    #         'feescurr': trade.feescurr or '',
+    #         'total': trade.total or 0,
+    #         'tradetype': trade.tradetype or '',
+    #         'status': trade.status or '',
+    #         'is_closed': trade.is_closed or False,
+    #     }
+    #     trade = TradePM(**trade.dict(), **d)
+    #     return trade
+
+    # TESTME: Untested
+    async def buy_crypto(self, trade_data: TradePM):
+        """
+        Buy crypto.
+        :param trade_data:  Refer to TradePM
+        :return:            Trade
+        """
+        try:
+            return await self.trade(trade_data, ActionChoices.buy)
+        except BaseORMException as e:
+            raise e
+
+    # TODO: buy/sell method for stock
+    # TODO: buy/sell method for forex
     
     
 class AccountBrokers(SharedMixin, DTBaseModel):
@@ -80,10 +140,11 @@ class Pool(SharedMixin, DTBaseModel):
     class Meta:
         table = 'trades_pool'
         manager = CuratorManager()
-        
-    # INCOMPLETE: Work in progress...
-    async def add(self):
-        pass
+        unique_together = (('account', 'currency'),)
+    
+    def __str__(self):
+        return self.id                                                                  # noqa
+    
         
         
 class Trade(SharedMixin, DTBaseModel):
@@ -92,7 +153,7 @@ class Trade(SharedMixin, DTBaseModel):
     basecurr = f.CharField(max_length=20, index=True)   # ETH/usdt
     quotecurr = f.CharField(max_length=20, index=True)   # eth/USDT
     
-    buyamount = f.DecimalField(max_digits=23, decimal_places=8)
+    amount = f.DecimalField(max_digits=23, decimal_places=8)
     storedamount = f.DecimalField(max_digits=23, decimal_places=8)
     gross = f.DecimalField(max_digits=23, decimal_places=8)   # quotecurr
     feesmain = f.DecimalField(max_digits=23, decimal_places=8, default=None, null=True)
@@ -120,9 +181,6 @@ class Trade(SharedMixin, DTBaseModel):
         table = 'trades_trade'
         manager = CuratorManager()
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    
     def __str__(self):
         if self.tradetype == 'crypto':
             name = f'{self.basecurr.upper()}{self.quotecurr.upper()}'
@@ -130,44 +188,3 @@ class Trade(SharedMixin, DTBaseModel):
             name = self.basecurr.upper()
         actionstr = reverse_choices(ActionChoices, self.action)         # noqa
         return f'{actionstr.capitalize()} {name}@{self.price}'
-    
-    
-    @classmethod
-    async def trade(cls, trade_data: TradePM):
-        # d = {
-        #     'leverage': kwargs.get('leverage', 0),
-        #     'status': kwargs.get('status', 'ongoing'),
-        #     'note': kwargs.get('note', ''),
-        #     'is_closed': kwargs.get('is_closed', False),
-        #     'metadata': kwargs.get('metadata', {}),
-        #     'tags': kwargs.get('tags', None),
-        # }
-        return await cls.create(**trade_data.dict())
-
-    @classmethod
-    def _buy(cls):
-        pass
-    
-    @classmethod
-    def _sell(cls):
-        pass
-    
-    # INCOMPLETE: Work in progress...
-    @classmethod
-    def buycrypto(cls, trade: BuyCryptoPM):
-        pass
-
-    # INCOMPLETE: Work in progress...
-    @classmethod
-    def sellcrypto(cls, trade: BuyCryptoPM):
-        pass
-
-    # INCOMPLETE: Work in progress...
-    @classmethod
-    def buystock(cls, trade: BuyCryptoPM):
-        pass
-
-    # INCOMPLETE: Work in progress...
-    @classmethod
-    def sellstock(cls, trade: BuyCryptoPM):
-        pass
