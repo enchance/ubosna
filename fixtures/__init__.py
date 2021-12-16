@@ -10,7 +10,7 @@ from app import ic, settings as s, red, cache
 from app.auth import create_user
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
 from app.authentication.models.common import Option, Taxo
-from trades.models import *
+from trades import *
 from app.authentication.models.pydantic import UserCreate
 from app.pydantic import OptionTemplate
 
@@ -119,10 +119,21 @@ async def insert_accounts(*, verified: int, unverified: int):
         opt_templates = await Option.get_templates()
         new_accounts = await Account.filter(accountoptions=None).values_list('id', flat=True)
         
-        ll = []
+        # Broker, Exchange
+        d = {}
+        default_broker = 'binance'
+        default_exchange = 'crypto'
+        brokerlist = red.get(s.CACHE_TAXO_BROKER)
+        exchangelist = red.get(s.CACHE_TAXO_EXCHANGE)
+        d['broker'] = list(filter(lambda x: x.split(':')[0] == default_broker, brokerlist))[0]
+        d['exchange'] = list(filter(lambda x: x.split(':')[0] == default_exchange, exchangelist))[0]
         for id in new_accounts:
             for k, v in (opt_templates.dict()).items():
-                ll.append(Option(name=k, value=v, optiontype='account', account_id=id))
+                if k in ['exchange', 'broker']:
+                    ll.append(Option(name=k, value=d[k], optiontype='account', account_id=id))
+                else:
+                    ll.append(Option(name=k, value=v, optiontype='account', account_id=id))
+        
         await Option.bulk_create(ll)
         
     except ValidationError:
@@ -155,15 +166,14 @@ async def insert_options():
 
 
 async def insert_taxos():
-    
     ll = []
     fiatlist = []
     cryptolist = []
     brokerlist = []
+    exchangelist = []
     
-    tickerlist = await Taxo.filter(
-        Q(taxotype='fiat') | Q(taxotype='cypto')
-    ).values('name', 'taxotype')
+    tickerlist = await Taxo.filter(taxotype__in=['fiat', 'crypto'])\
+                           .values('name', 'taxotype')
     for i in tickerlist:
         if i['taxotype'] == 'fiat':
             fiatlist.append(i)
@@ -175,45 +185,82 @@ async def insert_taxos():
     for i in taxos_dict['global']['tags']:
         if i in query:
             continue
-        ll.append(Taxo(name=i, taxotype='tag', is_global=True))
+        ll.append(Taxo(name=i, label=i, display=i, taxotype='tag', is_global=True))
     partialkey = s.CACHE_TAXO_TAG_TEMPLATE
     red.set(partialkey, taxos_dict['global']['tags'], clear=True)
 
-    
     # Fiat
     for name, label in taxos_dict['fiat'].items():
         if name in fiatlist:
             continue
-        ll.append(Taxo(name=name, label=label, taxotype='fiat'))
+        ll.append(Taxo(name=name, label=label, display=label, taxotype='fiat'))
         fiatlist.append(name)
     partialkey = s.CACHE_TAXO_FIAT
     red.set(partialkey, fiatlist, clear=True)
 
     # Crypto
     for name, label in taxos_dict['crypto'].items():
-        if name in fiatlist:
+        if name in cryptolist:
             continue
-        ll.append(Taxo(name=name, label=label, taxotype='crypto'))
+        ll.append(Taxo(name=name, label=label, display=label, taxotype='crypto'))
         cryptolist.append(name)
     partialkey = s.CACHE_TAXO_CRYPTO
     red.set(partialkey, cryptolist, clear=True)
-    
+
+    # Broker (deferred caching)
+    for name, label in taxos_dict['broker'].items():
+        if name in brokerlist:
+            continue
+        ll.append(Taxo(name=name, label=label, display=label, taxotype='broker'))
+        brokerlist.append(name)
+
+    # Exchange (deferred caching)
+    for name, label in taxos_dict['exchange'].items():
+        if name in exchangelist:
+            continue
+        ll.append(Taxo(name=name, label=label, display=label, taxotype='exchange'))
+        exchangelist.append(name)
+
+    # Populate db
     ll and await Taxo.bulk_create(ll)
+    
+    # Broker caching
+    if brokerlist:
+        querydata = await Taxo.filter(taxotype='broker', name__in=brokerlist)\
+                              .values_list('name', 'label', 'id')
+        ll = []
+        for i in querydata:
+            ll.append(':'.join(i))
+        partialkey = s.CACHE_TAXO_BROKER
+        red.set(partialkey, ll, clear=True)
+
+    # Exchange caching
+    if exchangelist:
+        querydata = await Taxo.filter(taxotype='exchange', name__in=exchangelist)\
+                              .values_list('name', 'label', 'id')
+        ll = []
+        for i in querydata:
+            ll.append(':'.join(i))
+        partialkey = s.CACHE_TAXO_EXCHANGE
+        red.set(partialkey, ll, clear=True)
+    
     
     return ['Taxos created.']
 
 
-async def insert_brokers():
+async def insert_trades():
     ll = []
-    brokerlist = await Broker.all().values_list('name', flat=True)
-    for name, label in broker_dict.items():
-        if name in brokerlist:
-            continue
-        ll.append(Broker(name=name, label=label))
-        brokerlist.append(name)
-    ll and await Broker.bulk_create(ll)
-    partialkey = s.CACHE_TAXO_BROKER
-    red.set(partialkey, brokerlist, clear=True)
+    
+    # Brokers
+    # brokerlist = await Broker.all().values_list('name', flat=True)
+    # for name, label in broker_dict.items():
+    #     if name in brokerlist:
+    #         continue
+    #     ll.append(Broker(name=name, label=label))
+    #     brokerlist.append(name)
+    # ll and await Broker.bulk_create(ll)
+    # partialkey = s.CACHE_TAXO_BROKER
+    # red.set(partialkey, brokerlist, clear=True)
     
     return ['Brokers created.']
 
@@ -230,16 +277,16 @@ async def init(
         success += await insert_groups()
     if perms:
         success += await insert_perms()
-    if options:
-        # Must come before accounts
-        success += await insert_options()
     if taxos:
         # Must come before accounts
         success += await insert_taxos()
+    if options:
+        # Must come before accounts
+        success += await insert_options()
     if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
-    if brokers:
-        success += await insert_brokers()
+    # if brokers:
+    #     success += await insert_trades()
     return success
     
 
