@@ -7,7 +7,7 @@ from limeutils import modstr, listify
 from pydantic import UUID4
 
 from app import settings as s, ic, red, cache
-from app.authentication.models.common import DTBaseModel, SharedMixin
+from app.auth import DTBaseModel, SharedMixin, Option
 from app.utils import flatten_query_result
 from .manager import CuratorManager
 
@@ -75,36 +75,36 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
                     d[field] = str(d[field])                                        # noqa
     
         if hasattr(self, 'groups'):
+            d['groups'] = prefetch and [i.name for i in self.groups] or \
+                          await self.groups.all().values_list('name', flat=True)
+
+        if hasattr(self, 'perms'):
+            d['perms'] = prefetch and [i.code for i in self.perms] or \
+                         await self.perms.all().values_list('code', flat=True)
+
+        if hasattr(self, 'options'):
             if prefetch:
-                d['groups'] = [i.name for i in self.groups]
+                d['options'] = {i.name: i.value for i in self.options}
             else:
-                d['groups'] = await self.groups.all().values_list('name', flat=True)
-        # if hasattr(self, 'options'):
-        #     if prefetch:
-        #         d['options'] = {i.name: i.value for i in self.options}
-        #     else:
-        #         d['options'] = {
-        #             i.name: i.value for i in
-        #             await self.options.all().only('id', 'name', 'value', 'is_active') if i.is_active
-        #         }
-        # if hasattr(self, 'permissions'):
-        #     if prefetch:
-        #         d['permissions'] = [i.code for i in self.permissions]
-        #     else:
-        #         d['permissions'] = await self.permissions.all().values_list('code', flat=True)
+                rowlist = await self.options.all().values_list('name', 'value')
+                d['options'] = dict(rowlist)
         return d
 
     @classmethod
-    async def get_and_cache(cls, id: UUID4):
-        # TODO: Limit the fields in the query
-        # TODO: Include options and perms in the options
+    async def get_and_cache(cls, id: UUID4) -> dict:
+        """
+        Get account data and save them to redis for easy access.
+        :param id:  Account id
+        :return:    dict of data saved to cache
+        """
+        # TODO: Include options in Prefetch
         cached_fields = ['id', 'email', 'is_active', 'is_superuser', 'is_verified', *s.INCLUDE_FIELDS]
         try:
             query = cls.get(pk=str(id)) \
                 .prefetch_related(
                     Prefetch('groups', queryset=Group.all().only('id', 'name')),
-                    # Prefetch('options', queryset=Option.all().only('user_id', 'name', 'value')),
-                    # Prefetch('permissions', queryset=Permission.filter(deleted_at=None).only('id', 'code'))
+                    Prefetch('perms', queryset=Perm.all().only('id', 'code')),
+                    Prefetch('accountoptions', queryset=Option.all().only('name', 'value'), to_attr='options')
                 ).only(*cached_fields)                                          # noqa
             account = await query
             
