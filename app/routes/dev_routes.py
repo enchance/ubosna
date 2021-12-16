@@ -63,7 +63,20 @@ async def index(_: Response):
     return s.TESTDATA
 
 @devrouter.get('/foo/{age}')
-async def foo(age: int = Path(..., ge=5, title='This is Mei-mei')) -> int:
+async def foo(age: int = Path(..., ge=5, title='This is Mei-mei')):
+    acct = await Account.get(email='super1@gmail.com')
+    user_dict = await Account.get_and_cache(acct.id)
+    # ic(user_dict)
+    
+    # query = Account.get(pk='5f680dc2-1c50-44e7-bba8-56b18437fe1d') \
+    #     .prefetch_related(
+    #     Prefetch('groups', queryset=Group.all().only('id', 'name')),
+    #     # Prefetch('options', queryset=Option.all().only('user_id', 'name', 'value')),
+    #     # Prefetch('permissions', queryset=Permission.filter(deleted_at=None).only('id', 'code'))
+    # )
+    # account = await query
+    # ic(type(account), account)
+    
     return age
 
 @devrouter.post("/cookie/")

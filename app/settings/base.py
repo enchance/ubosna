@@ -68,6 +68,7 @@ class Base(BaseSettings):
     EMAIL_SENDER: EmailStr = os.getenv('EMAIL_HOST_USER')
     USER_TIMEZONE: str = os.getenv('USER_TIMEZONE', '+08:00')
     USER_GROUPS: List[str] = ['AccountGroup', 'TradeGroup']
+    INCLUDE_FIELDS: list = ['username', 'display', 'timezone', 'lang', 'currency']  # Caching
     
     # Email
     EMAIL_PORT: int = os.getenv('EMAIL_PORT')

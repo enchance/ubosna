@@ -70,6 +70,7 @@ async def get_user_manager(user_db=Depends(get_user_db)):
 get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
+
 async def create_user(email: str, password: str, *, username: str = '', is_superuser: bool = False):
     """Programmatically create a user"""
     try:
@@ -82,6 +83,7 @@ async def create_user(email: str, password: str, *, username: str = '', is_super
                 return created_user.email
     except UserAlreadyExists:
         pass
+
 
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
 fusers = FastAPIUsers(get_user_manager, [jwtauth], User, UserCreate, UserUpdate, UserDB)

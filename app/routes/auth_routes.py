@@ -6,7 +6,7 @@ from fastapi_users.manager import BaseUserManager, InvalidPasswordException, Use
 
 from app import ic
 from app import settings as s
-from app.auth import jwtauth, User, UserCreate, get_user_manager, fusers
+from app.auth import jwtauth, User, UserCreate, UserDB, get_user_manager, fusers, Account
 
 
 
@@ -26,6 +26,10 @@ async def login(
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_BAD_CREDENTIALS)
     if s.REQUIRES_VERIFICATION and not user.is_verified:
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_USER_NOT_VERIFIED)
+    
+    # Cache
+    # Account.get_and_cache(user.id)
+    
     return await jwtauth.get_login_response(user, response, user_manager)
 
 

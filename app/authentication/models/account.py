@@ -32,14 +32,15 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     lang = f.CharField(max_length=2, default='en')
     metadata = f.JSONField(null=True)
 
-    groups = f.ManyToManyField('models.Group', related_name='group_accounts',
+    groups = f.ManyToManyField('models.Group', related_name='groupaccounts',
                                through='auth_xaccountgroups',
                                backward_key='account_id', forward_key='group_id')
-    perms = f.ManyToManyField('models.Perm', related_name='perm_accounts',
+    
+    perms = f.ManyToManyField('models.Perm', related_name='permaccounts',
                               through='auth_xaccountperms',
                               backward_key='account_id', forward_key='perm_id')
-    # Project
-    brokers = f.ManyToManyField('models.Broker', related_name='broker_users',
+    
+    brokers = f.ManyToManyField('models.Broker', related_name='brokeraccounts',
                                 through='trades_xaccountbrokers',
                                 backward_key='account_id', forward_key='broker_id')
 
@@ -71,21 +72,21 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             if hasattr(self, field) and field not in exclude:
                 d[field] = getattr(self, field)
                 if field == 'id':
-                    d[field] = str(d[field])
+                    d[field] = str(d[field])                                        # noqa
     
         if hasattr(self, 'groups'):
             if prefetch:
                 d['groups'] = [i.name for i in self.groups]
             else:
                 d['groups'] = await self.groups.all().values_list('name', flat=True)
-        if hasattr(self, 'options'):
-            if prefetch:
-                d['options'] = {i.name: i.value for i in self.options}
-            else:
-                d['options'] = {
-                    i.name: i.value for i in
-                    await self.options.all().only('id', 'name', 'value', 'is_active') if i.is_active
-                }
+        # if hasattr(self, 'options'):
+        #     if prefetch:
+        #         d['options'] = {i.name: i.value for i in self.options}
+        #     else:
+        #         d['options'] = {
+        #             i.name: i.value for i in
+        #             await self.options.all().only('id', 'name', 'value', 'is_active') if i.is_active
+        #         }
         # if hasattr(self, 'permissions'):
         #     if prefetch:
         #         d['permissions'] = [i.code for i in self.permissions]
@@ -95,23 +96,26 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
 
     @classmethod
     async def get_and_cache(cls, id: UUID4):
+        # TODO: Limit the fields in the query
+        # TODO: Include options and perms in the options
+        cached_fields = ['id', 'email', 'is_active', 'is_superuser', 'is_verified', *s.INCLUDE_FIELDS]
         try:
-            query = cls.get(pk=id)\
+            query = cls.get(pk=str(id)) \
                 .prefetch_related(
                     Prefetch('groups', queryset=Group.all().only('id', 'name')),
                     # Prefetch('options', queryset=Option.all().only('user_id', 'name', 'value')),
                     # Prefetch('permissions', queryset=Permission.filter(deleted_at=None).only('id', 'code'))
-                )
+                ).only(*cached_fields)                                          # noqa
             account = await query
             
             # if userdb.oauth_account_model is not None:
             #     query = query.prefetch_related("oauth_accounts")
             # usermod = await query.only(*userdb.select_fields)
             
-            user_dict = await account.to_dict(prefetch=True)
             partialkey = s.CACHE_USERNAME.format(id)
+            user_dict = await account.to_dict(prefetch=True)
             user_dict = cache.prepareuser_dict(user_dict)
-            red.set(partialkey, cache.prepareuser_dict(user_dict), clear=True)
+            red.set(partialkey, user_dict, clear=True)
             return user_dict
         except DoesNotExist:
             pass
@@ -176,7 +180,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     async def get_groups(self) -> List[str]:
         """Get group names assigned to the user."""
         # TODO: Use caching
-        groupnames = await Group.filter(group_accounts=self.id).values('name')
+        groupnames = await Group.filter(groupaccounts=self.id).values('name')
         return groupnames and flatten_query_result('name', groupnames) or []
     
 
