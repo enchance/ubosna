@@ -26,3 +26,5 @@ class OptionTemplate(BaseModel):
     refresh_token: int
     refresh_token_cutoff: int
     verify_email: bool
+    exchange: str
+    broker: str

@@ -119,7 +119,8 @@ async def insert_accounts(*, verified: int, unverified: int):
         opt_templates = await Option.get_templates()
         new_accounts = await Account.filter(accountoptions=None).values_list('id', flat=True)
         
-        # Broker, Exchange
+        # Account options
+        ll = []
         d = {}
         default_broker = 'binance'
         default_exchange = 'crypto'
@@ -230,6 +231,7 @@ async def insert_taxos():
                               .values_list('name', 'label', 'id')
         ll = []
         for i in querydata:
+            i = list(map(str, i))
             ll.append(':'.join(i))
         partialkey = s.CACHE_TAXO_BROKER
         red.set(partialkey, ll, clear=True)
@@ -240,10 +242,10 @@ async def insert_taxos():
                               .values_list('name', 'label', 'id')
         ll = []
         for i in querydata:
+            i = list(map(str, i))
             ll.append(':'.join(i))
         partialkey = s.CACHE_TAXO_EXCHANGE
         red.set(partialkey, ll, clear=True)
-    
     
     return ['Taxos created.']
 
@@ -270,7 +272,7 @@ async def insert_trades():
 async def init(
         verified: int = 4, unverified: int = 3,
         accounts: bool = True, groups: bool = True, perms: bool = True,
-        options: bool = True, taxos: bool = True, brokers: bool = True
+        options: bool = True, taxos: bool = True, traders: bool = True
 ):
     success = []
     if groups:
@@ -285,7 +287,8 @@ async def init(
         success += await insert_options()
     if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
-    # if brokers:
+    
+    # if traders:
     #     success += await insert_trades()
     return success
     
