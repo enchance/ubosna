@@ -5,8 +5,9 @@ from limeutils import modstr, reverse_choices
 
 from app import settings as s
 from app.auth import DTBaseModel, SharedMixin, CuratorManager, Media, Taxo, Account
-from .pydantic import TradePM
-from .choices import ActionChoices
+from . import *
+# from .pydantic import TradePM
+# from .choices import ActionChoices
 
 
 
@@ -30,67 +31,6 @@ class Broker(SharedMixin, DTBaseModel):
 
     def __str__(self):
         return modstr(self, 'name')
-
-    # TESTME: Untested
-    async def trade(self, trade_data: TradePM, action: ActionChoices):
-        """
-        Make a new trade with your trading data. You can use this directly but it's recommended to
-        any of the buy/sell class methods instead which are easier.
-        :param trade_data:  TradePM instance
-        :param action:      Buy/Sell value via ActionChoices
-        :return:            Trade
-        """
-        currency = action == ActionChoices.buy and trade_data.quotecurr or trade_data.basecurr
-        try:
-            pool = Pool.get(account=trade_data.account, currency=currency).only('id')
-        except DoesNotExist:
-            d = {
-                'currency': currency,
-                'amount': trade_data.amount,
-                'costave': trade_data.price,
-                'account': trade_data.account
-            }
-            pool = Pool.create(**d)
-
-        # TODO: Fill this up
-        trade_data.pool = pool
-        trade_data.exchange = trade_data.exchange or ''
-        trade_data.broker = trade_data.broker or self
-        trade_data.tags = trade_data.tags or None
-        trade_data.leverage = trade_data.leverage or None
-        # trade = self._compute_missing(trade_data)
-        # return await self.create(**trade.dict())
-
-    # @classmethod
-    # def _compute_missing(cls, trade: TradePM) -> TradePM:
-    #     # TODO: Fill in values
-    #     d = {
-    #         'storeamount': trade.storeamount or 0,
-    #         'gross': trade.gross or 0,
-    #         'feesmain': trade.feesmain or 0,
-    #         'feescurr': trade.feescurr or '',
-    #         'total': trade.total or 0,
-    #         'tradetype': trade.tradetype or '',
-    #         'status': trade.status or '',
-    #         'is_closed': trade.is_closed or False,
-    #     }
-    #     trade = TradePM(**trade.dict(), **d)
-    #     return trade
-
-    # TESTME: Untested
-    async def buy_crypto(self, trade_data: TradePM):
-        """
-        Buy crypto.
-        :param trade_data:  Refer to TradePM
-        :return:            Trade
-        """
-        try:
-            return await self.trade(trade_data, ActionChoices.buy)
-        except BaseORMException as e:
-            raise e
-
-    # TODO: buy/sell method for stock
-    # TODO: buy/sell method for forex
     
     
 class AccountBrokers(SharedMixin, DTBaseModel):
@@ -144,7 +84,6 @@ class Pool(SharedMixin, DTBaseModel):
     
     def __str__(self):
         return self.id                                                                  # noqa
-    
         
         
 class Trade(SharedMixin, DTBaseModel):
@@ -188,3 +127,53 @@ class Trade(SharedMixin, DTBaseModel):
             name = self.basecurr.upper()
         actionstr = reverse_choices(ActionChoices, self.action)         # noqa
         return f'{actionstr.capitalize()} {name}@{self.price}'
+
+
+    # TESTME: Untested
+    async def trade(self, trade_data: TradePM, action: ActionChoices):
+        """
+        Make a new trade with your trading data. You can use this directly but it's recommended to
+        any of the buy/sell class methods instead which are easier.
+        :param trade_data:  TradePM instance
+        :param action:      Buy/Sell value via ActionChoices
+        :return:            Trade
+        """
+        currency = action == ActionChoices.buy and trade_data.quotecurr or trade_data.basecurr
+        trade_data.pool = get_pool(trade_data.account, currency)
+        trade_data.exchange = trade_data.exchange or ''
+        trade_data.broker = trade_data.broker or self
+        trade_data.tags = trade_data.tags or None
+        trade_data.leverage = trade_data.leverage or None
+        # trade = self._compute_missing(trade_data)
+        # return await self.create(**trade.dict())
+
+    # # @classmethod
+    # # def _compute_missing(cls, trade: TradePM) -> TradePM:
+    # #     # TODO: Fill in values
+    # #     d = {
+    # #         'storeamount': trade.storeamount or 0,
+    # #         'gross': trade.gross or 0,
+    # #         'feesmain': trade.feesmain or 0,
+    # #         'feescurr': trade.feescurr or '',
+    # #         'total': trade.total or 0,
+    # #         'tradetype': trade.tradetype or '',
+    # #         'status': trade.status or '',
+    # #         'is_closed': trade.is_closed or False,
+    # #     }
+    # #     trade = TradePM(**trade.dict(), **d)
+    # #     return trade
+
+    # TESTME: Untested
+    async def buy_crypto(self, trade_data: TradePM):
+        """
+        Buy crypto.
+        :param trade_data:  Refer to TradePM
+        :return:            Trade
+        """
+        try:
+            return await self.trade(trade_data, ActionChoices.buy)
+        except BaseORMException as e:
+            raise e
+
+    # TODO: buy/sell method for stock
+    # TODO: buy/sell method for forex

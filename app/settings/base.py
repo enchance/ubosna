@@ -58,6 +58,7 @@ class Base(BaseSettings):
     CACHE_TAXO_FIAT: str = 'taxo-fiat'
     CACHE_TAXO_CRYPTO: str = 'taxo-crypto'
     CACHE_TAXO_BROKER: str = 'taxo-broker'
+    CACHE_TAXO_EXCHANGE: str = 'taxo-broker'
     
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)
