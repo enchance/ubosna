@@ -1,4 +1,5 @@
-from typing import Optional, List
+from ast import literal_eval
+from typing import Optional, List, Union
 from fastapi_users.db import TortoiseBaseUserModel
 from tortoise import models, fields as f, manager
 from tortoise.query_utils import Prefetch
@@ -6,7 +7,7 @@ from tortoise.exceptions import DoesNotExist
 from limeutils import modstr, listify
 from pydantic import UUID4
 
-from app import settings as s, ic, red, cache
+from app import settings as s, ic, red, cache, utils
 from app.pydantic import OptionTemplate
 from app.authentication.models.common import DTBaseModel, SharedMixin, Option
 from app.utils import flatten_query_result
@@ -171,22 +172,64 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         # red.set(partialkey, cache.prepareuser_dict(user.dict()))
         # return user.groups
 
-    async def has_perm(self, codeorgroup: str) -> bool:
+    async def has_perm(self, perm: str) -> bool:
         """
         Checks if user has a specific perm or is a part of a group.
-        :param codeorgroup: Perm code or group name
-        :return:            bool
+        :param perm:    Check if user has this perm
+        :return:        bool
         """
-        # TODO: Use caching
-        group_names = await self.get_groups()
-        perm_codes = group_names and await Perm.get_perms(*group_names) or []
-        return codeorgroup in group_names or codeorgroup in perm_codes
+        permlist, missing = set(), []
+        grouplist = await self.get_groups()
+        for name in grouplist:
+            partialkey = s.CACHE_GROUPNAME.format(name)
+            if red.exists(partialkey):
+                perms = set(red.get(partialkey))
+                permlist = permlist.union(perms)
+            else:
+                missing.append(name)
+        
+        # Resave to cache if group cache is missing
+        if missing:
+            perms_dict = await Perm.filter(permgroups__name__in=missing)\
+                                   .values('code', group='permgroups__name')
+            d = {}
+            for i in perms_dict:
+                name, code = i['group'], i['code']
+                d.setdefault(name, set())
+                d[name].add(code)
+                permlist.add(code)
+                
+                # Save to cache
+                partialkey = s.CACHE_GROUPNAME.format(name)
+                red.set(partialkey, list(d[name]), clear=True)
+        #     ic(d)
+        # ic(permlist)
+        return perm in permlist
     
-    async def get_groups(self) -> List[str]:
-        """Get group names assigned to the user."""
-        # TODO: Use caching
-        groupnames = await Group.filter(groupaccounts=self.id).values('name')
-        return groupnames and flatten_query_result('name', groupnames) or []
+    async def has_group(self, group: str):
+        pass
+    
+    async def get_groups(self) -> list:
+        """Get group names assigned to the user. Updates cache if not exists."""
+        if cachedata := self.get_cache('groups'):
+            return cachedata['groups']
+        grouplist = await Group.filter(groupaccounts=self.id).values_list('name', flat=True)
+        await Account.get_and_cache(self.id)
+        return grouplist or []
+
+    async def update_cache(self):
+        pass
+        
+    def get_cache(self, *keys) -> dict:
+        """Get specific keys or just get all of them. Assumes cache exists."""
+        partialkey = s.CACHE_ACCOUNT.format(self.id)
+        if red.exists(partialkey):
+            account_dict = red.get(partialkey)
+            account_dict = cache.restoreuser_dict(account_dict)
+            if keys:
+                valid_keys = set(keys) & set(account_dict.keys())
+                return {k: v for k, v in account_dict.items() if k in valid_keys}
+            return account_dict
     
 
 class AccountGroups(models.Model):

@@ -60,12 +60,17 @@ async def index(_: Response):
     # x = await Account.filter(Q(accountoptions=None)).distinct().values_list('id', flat=True)
     # return x
     
-    account_dict = await Account.get_and_cache('b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')  # noqa
-    # ic(account_dict)
-    cached = red.get('account-b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')
-    # ic(cached)
-    parsed = cache.restoreuser_dict(cached)
-    ic(parsed)
+    # account_dict = await Account.get_and_cache('b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')  # noqa
+    # # ic(account_dict)
+    # cached = red.get('account-b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')
+    # # ic(cached)
+    # parsed = cache.restoreuser_dict(cached)
+    # ic(parsed)
+    
+    # # Check user perms
+    # account = await Account.get(pk='cff2bc4e-3b02-4ed1-8bd5-6c0c2b6db3ec')
+    # aaa = await account.has_perm('trade.edit')
+    # ic(aaa)
     
     return s.TESTDATA
 

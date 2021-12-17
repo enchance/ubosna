@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Dict
+
+from app import ic
 
 
 def flatten_query_result(key: str, query_result: List[dict], unique: bool = True) -> list:
