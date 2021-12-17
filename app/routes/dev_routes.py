@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response, Query, Path, Depends
 from tortoise.query_utils import Prefetch, Q
 from pydantic import validate_arguments
 
-from app import settings as s, ic
+from app import settings as s, ic, red, cache
 from app.auth import current_user
 from app.authentication.models.account import Group, Perm, Account
 from app.authentication.models.common import Option
@@ -59,6 +59,13 @@ async def index(_: Response):
     # x = await Account.all().values_list('id', flat=True)
     # x = await Account.filter(Q(accountoptions=None)).distinct().values_list('id', flat=True)
     # return x
+    
+    account_dict = await Account.get_and_cache('b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')  # noqa
+    # ic(account_dict)
+    cached = red.get('account-b39ccf1f-0e4b-427a-aad8-34e62ecaacb4')
+    # ic(cached)
+    parsed = cache.restoreuser_dict(cached)
+    ic(parsed)
     
     return s.TESTDATA
 

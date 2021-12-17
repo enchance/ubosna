@@ -21,14 +21,15 @@ async def login(
 ):
     # TODO: Check if active user
     # TODO: Check if verified user
+    
     user = await user_manager.authenticate(credentials)
     if user is None or not user.is_active:
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_BAD_CREDENTIALS)
     if s.REQUIRES_VERIFICATION and not user.is_verified:
         raise HTTPException(status_code=400, detail=ErrorCode.LOGIN_USER_NOT_VERIFIED)
     
-    # Cache
-    # Account.get_and_cache(user.id)
+    # Cache user data
+    await Account.get_and_cache(user.id)
     
     return await jwtauth.get_login_response(user, response, user_manager)
 

@@ -17,11 +17,9 @@ class OptionAdmin(BaseModel):
 class OptionTemplate(BaseModel):
     theme: str
     email_notifications: bool
-    language: str
     show_currency_symbol: bool
     date_format: str
     
-    currency: str
     access_token: int
     refresh_token: int
     refresh_token_cutoff: int

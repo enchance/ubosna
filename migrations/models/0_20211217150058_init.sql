@@ -47,6 +47,17 @@ CREATE TABLE IF NOT EXISTS "auth_xaccountgroups" (
     "author_id" UUID NOT NULL REFERENCES "auth_account" ("id") ON DELETE CASCADE,
     "group_id" INT NOT NULL REFERENCES "auth_group" ("id") ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS "core_option" (
+    "id" SERIAL NOT NULL PRIMARY KEY,
+    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
+    "name" VARCHAR(20) NOT NULL,
+    "value" VARCHAR(191) NOT NULL,
+    "optiontype" VARCHAR(10) NOT NULL,
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "idx_core_option_optiont_406baa" ON "core_option" ("optiontype");
 CREATE TABLE IF NOT EXISTS "auth_perm" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
@@ -96,17 +107,6 @@ CREATE TABLE IF NOT EXISTS "core_media" (
 );
 CREATE INDEX IF NOT EXISTS "idx_core_media_deleted_becbda" ON "core_media" ("deleted_at");
 CREATE INDEX IF NOT EXISTS "idx_core_media_mediaty_e27c92" ON "core_media" ("mediatype");
-CREATE TABLE IF NOT EXISTS "core_option" (
-    "id" SERIAL NOT NULL PRIMARY KEY,
-    "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "created_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,
-    "name" VARCHAR(20) NOT NULL,
-    "value" VARCHAR(191) NOT NULL,
-    "optiontype" VARCHAR(10) NOT NULL,
-    "is_active" BOOL NOT NULL  DEFAULT True,
-    "account_id" UUID REFERENCES "auth_account" ("id") ON DELETE CASCADE
-);
-CREATE INDEX IF NOT EXISTS "idx_core_option_optiont_406baa" ON "core_option" ("optiontype");
 CREATE TABLE IF NOT EXISTS "core_taxo" (
     "id" SERIAL NOT NULL PRIMARY KEY,
     "updated_at" TIMESTAMPTZ NOT NULL  DEFAULT CURRENT_TIMESTAMP,

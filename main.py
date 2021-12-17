@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from tortoise.contrib.starlette import register_tortoise
 
-from app.settings.db import DATABASE
+from app.settings.db import TORTOISE_ORM
 from app.routes import devrouter, authrouter
 from trades.routes import traderouter
 from fixtures import fixturerouter
@@ -24,7 +24,7 @@ def get_app() -> FastAPI:
     app.include_router(devrouter, prefix='/dev', tags=['Development'])
     
     # Tortoise
-    register_tortoise(app, config=DATABASE, generate_schemas=True)
+    register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
     
     # CORS
     origins = ['http://localhost:3000', 'https://localhost:3000']   # For React

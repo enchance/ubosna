@@ -114,31 +114,13 @@ async def insert_accounts(*, verified: int, unverified: int):
         for email in ll:
             await create_user(email, password)
             total += 1
-            
-        # Options
-        opt_templates = await Option.get_templates()
-        new_accounts = await Account.filter(accountoptions=None).values_list('id', flat=True)
         
-        # Account options
-        ll = []
-        d = {}
-        default_broker = 'binance'
-        default_exchange = 'crypto'
-        brokerlist = red.get(s.CACHE_TAXO_BROKER)
-        exchangelist = red.get(s.CACHE_TAXO_EXCHANGE)
-        d['broker'] = list(filter(lambda x: x.split(':')[0] == default_broker, brokerlist))[0]
-        d['exchange'] = list(filter(lambda x: x.split(':')[0] == default_exchange, exchangelist))[0]
-        for id in new_accounts:
-            for k, v in (opt_templates.dict()).items():
-                if k in ['exchange', 'broker']:
-                    ll.append(Option(name=k, value=d[k], optiontype='account', account_id=id))
-                else:
-                    ll.append(Option(name=k, value=v, optiontype='account', account_id=id))
         
-        await Option.bulk_create(ll)
         
-    except ValidationError:
+    except ValidationError as e:
         pass
+    except Exception as e:
+        ic(e)
         
     return [f'{total} accounts created.']
 
@@ -251,19 +233,6 @@ async def insert_taxos():
 
 
 async def insert_trades():
-    ll = []
-    
-    # Brokers
-    # brokerlist = await Broker.all().values_list('name', flat=True)
-    # for name, label in broker_dict.items():
-    #     if name in brokerlist:
-    #         continue
-    #     ll.append(Broker(name=name, label=label))
-    #     brokerlist.append(name)
-    # ll and await Broker.bulk_create(ll)
-    # partialkey = s.CACHE_TAXO_BROKER
-    # red.set(partialkey, brokerlist, clear=True)
-    
     return ['Brokers created.']
 
 
@@ -271,23 +240,20 @@ async def insert_trades():
 @fixturerouter.get('/init', summary='Initial data for the site')
 async def init(
         verified: int = 4, unverified: int = 3,
-        accounts: bool = True, groups: bool = True, perms: bool = True,
-        options: bool = True, taxos: bool = True, traders: bool = True
+        accounts: bool = True, groups: bool = True,
+        options: bool = True, traders: bool = True
 ):
     success = []
     if groups:
-        success += await insert_groups()
-    if perms:
-        success += await insert_perms()
-    if taxos:
         # Must come before accounts
+        success += await insert_groups()
+        success += await insert_perms()
         success += await insert_taxos()
     if options:
         # Must come before accounts
         success += await insert_options()
     if accounts:
         success += await insert_accounts(verified=verified, unverified=unverified)
-    
     # if traders:
     #     success += await insert_trades()
     return success

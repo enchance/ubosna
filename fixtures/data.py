@@ -14,11 +14,9 @@ options_dict = {
     'template': {
         'theme': 'light',
         'email_notifications': True,
-        'language': 'en',
         'show_currency_symbol': True,
         'date_format': '%Y-%m-%d %H:%M:%S',
         
-        'currency': s.CURRENCY_ACCOUNT,
         'access_token': s.ACCESS_TOKEN_EXPIRE,
         'refresh_token': s.REFRESH_TOKEN_EXPIRE,
         'refresh_token_cutoff': s.REFRESH_TOKEN_CUTOFF,

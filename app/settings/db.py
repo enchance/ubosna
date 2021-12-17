@@ -14,7 +14,7 @@ DATABASE_MODELS = [
     'app.authentication.models.common',
     'trades.models'
 ]
-DATABASE = {
+TORTOISE_ORM = {
     'connections': {
         'default': DATABASE_URL,
     },

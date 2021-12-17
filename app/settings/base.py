@@ -47,14 +47,14 @@ class Base(BaseSettings):
         }
     }
     CACHE_GROUPNAME: str = 'group-{}'
-    CACHE_USERNAME: str = 'account-{}'
+    CACHE_ACCOUNT: str = 'account-{}'
     CACHE_TAXONOMY: str = 'tax-{}-{}'
     CACHE_TAXONOMY_SEARCH: str = 'tax-{}-*'
     CACHE_OPTION_SITE: str = 'option-site'
     CACHE_OPTION_ADMIN: str = 'option-admin'
     CACHE_OPTION_TEMPLATE: str = 'option-template'
-    CACHE_TAXO_TAG_TEMPLATE: str = 'taxo-tags'
-    CACHE_TAXO_CAT_TEMPLATE: str = 'taxo-cats'
+    CACHE_TAXO_TAG_TEMPLATE: str = 'taxo-tag'
+    CACHE_TAXO_CAT_TEMPLATE: str = 'taxo-category'
     CACHE_TAXO_FIAT: str = 'taxo-fiat'
     CACHE_TAXO_CRYPTO: str = 'taxo-crypto'
     CACHE_TAXO_BROKER: str = 'taxo-broker'
@@ -76,9 +76,6 @@ class Base(BaseSettings):
     EMAIL_HOST_USER: str = os.getenv('EMAIL_HOST_USER')
     EMAIL_HOST_PASS: str = os.getenv('EMAIL_HOST_PASS')
     
-    # Others
-    PROGRAM_OVERLORDS: str = 'DropkickDev'
-    
     # API
     GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
     COINMARKETCAP_KEY = os.getenv('COINMARKETCAP_KEY')
@@ -93,7 +90,9 @@ class Base(BaseSettings):
     # NOTICE_TOKEN_BAD: str = os.getenv('NOTICE_TOKEN_BAD', '/n/token-bad')
     # NOTICE_USER_ALREADY_VERIFIED: str = os.getenv('NOTICE_USER_ALREADY_VERIFIED',
     #                                               '/n/user-already-verified')
-    
+
+    # Others
+    PROGRAM_OVERLORDS: str = 'DropkickDev'
     TESTDATA: str = 'This is base data'
     
     class Config:

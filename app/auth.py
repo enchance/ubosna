@@ -20,16 +20,28 @@ from .authentication.models.manager import *
 async def setup_account(account: Account, user: UserDB):
     email, username = itemgetter('email', 'username')(user.dict())
     account.display = username and username or user.email.split('@')[0]
-    
-    # CACHE
-    await Account.get_and_cache(account.id)
-    
     return account
 
 
-async def setup_options(account: Account):
-    # Read list of options
-    # Assign options to account with default values
+async def setup_account_options(account: Account):
+    """Create options for each new user (on demand)."""
+    ll = []
+    d = {}
+    default_broker = 'binance'
+    default_exchange = 'crypto'
+    opt_templates = await Option.get_templates()
+    
+    brokerlist = red.get(s.CACHE_TAXO_BROKER)
+    exchangelist = red.get(s.CACHE_TAXO_EXCHANGE)
+    d['broker'] = list(filter(lambda x: x.split(':')[0] == default_broker, brokerlist))[0]
+    d['exchange'] = list(filter(lambda x: x.split(':')[0] == default_exchange, exchangelist))[0]
+
+    for key, val in (opt_templates.dict()).items():
+        if key in ['exchange', 'broker']:
+            ll.append(Option(name=key, value=d[key], optiontype='account', account=account))
+        else:
+            ll.append(Option(name=key, value=val, optiontype='account', account=account))
+    await Option.bulk_create(ll)
     return
 
 
@@ -46,7 +58,9 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
         account = await setup_account(account, user)
         await account.save(update_fields=['display'])
         await account.add_group(*s.USER_GROUPS)
-        # await setup_options(account)
+        
+        # Account options
+        await setup_account_options(account)
 
         # Generate verification token which triggers on_after_request_verify()
         await self.request_verify(user, request)

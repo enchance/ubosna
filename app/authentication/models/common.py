@@ -85,7 +85,7 @@ class Option(SharedMixin, DTBaseModel):
     
     class Meta:
         table = 'core_option'
-        ordering = ['name']
+        ordering = ['name', 'value']
         manager = CuratorManager()
     
     def __str__(self):
@@ -114,6 +114,13 @@ class Option(SharedMixin, DTBaseModel):
         # INCOMPLETE: Work in progress...
         pass
 
+    def to_dict(self) -> dict:
+        """
+        Converts instance into a dict.
+        :return:            dict
+        """
+        return {field: getattr(self, field) for field in ['name', 'value']}
+    
 
 class Media(SharedMixin, DTBaseModel):
     url = f.CharField(max_length=256, unique=True)

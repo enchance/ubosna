@@ -7,7 +7,8 @@ from limeutils import modstr, listify
 from pydantic import UUID4
 
 from app import settings as s, ic, red, cache
-from app.auth import DTBaseModel, SharedMixin, Option
+from app.pydantic import OptionTemplate
+from app.authentication.models.common import DTBaseModel, SharedMixin, Option
 from app.utils import flatten_query_result
 from .manager import CuratorManager
 
@@ -57,7 +58,6 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     def fullname(self):
         return f'{self.firstname} {self.lastname}'.strip()
 
-    # TODO: Revise as needed
     async def to_dict(self, exclude: Optional[List[str]] = None, prefetch: bool = False) -> dict:
         """
         Converts instance into a dict.
@@ -88,13 +88,15 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             else:
                 rowlist = await self.options.all().values_list('name', 'value')
                 d['options'] = dict(rowlist)
+            d['options'] = OptionTemplate(**d['options']).dict()
         return d
 
     @classmethod
-    async def get_and_cache(cls, id: UUID4) -> dict:
+    async def get_and_cache(cls, id: UUID4, parsed: bool = True):
         """
         Get account data and save them to redis for easy access.
-        :param id:  Account id
+        :param id:      Account id
+        :param parsed:  Return parsed data instead of caching data
         :return:    dict of data saved to cache
         """
         # TODO: Include options in Prefetch
@@ -104,19 +106,22 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
                 .prefetch_related(
                     Prefetch('groups', queryset=Group.all().only('id', 'name')),
                     Prefetch('perms', queryset=Perm.all().only('id', 'code')),
-                    Prefetch('accountoptions', queryset=Option.all().only('name', 'value'), to_attr='options')
-                ).only(*cached_fields)                                          # noqa
+                    Prefetch('accountoptions', queryset=Option.all()\
+                             .only('id', 'name', 'value', 'account_id'), to_attr='options')
+                ).only(*cached_fields)
             account = await query
             
             # if userdb.oauth_account_model is not None:
             #     query = query.prefetch_related("oauth_accounts")
             # usermod = await query.only(*userdb.select_fields)
             
-            partialkey = s.CACHE_USERNAME.format(id)
+            partialkey = s.CACHE_ACCOUNT.format(id)
             user_dict = await account.to_dict(prefetch=True)
-            user_dict = cache.prepareuser_dict(user_dict)
-            red.set(partialkey, user_dict, clear=True)
-            return user_dict
+            for_caching = cache.prepareuser_dict(user_dict)
+            red.set(partialkey, for_caching, clear=True)
+            
+            return parsed and user_dict or for_caching
+        
         except DoesNotExist:
             pass
 
