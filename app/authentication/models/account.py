@@ -112,6 +112,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
                 ).only(*cached_fields)
             account = await query
             
+            # TODO: oouth in Account.get_and_cache
             # if userdb.oauth_account_model is not None:
             #     query = query.prefetch_related("oauth_accounts")
             # usermod = await query.only(*userdb.select_fields)
@@ -207,11 +208,16 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         return perm in permlist
     
     async def has_group(self, group: str):
-        pass
+        if grouplist := await self.get_cache('groups'):
+            pass
+        else:
+            account_cache = await Account.get_and_cache(self.id)
+            grouplist = account_cache.get('groups', [])
+        return group in grouplist
     
     async def get_groups(self) -> list:
         """Get group names assigned to the user. Updates cache if not exists."""
-        if cachedata := self.get_cache('groups'):
+        if cachedata := await self.get_cache('groups'):
             return cachedata['groups']
         grouplist = await Group.filter(groupaccounts=self.id).values_list('name', flat=True)
         await Account.get_and_cache(self.id)
@@ -220,7 +226,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
     async def update_cache(self):
         pass
         
-    def get_cache(self, *keys) -> dict:
+    async def get_cache(self, *keys) -> dict:
         """Get specific keys or just get all of them. Assumes cache exists."""
         partialkey = s.CACHE_ACCOUNT.format(self.id)
         if red.exists(partialkey):
@@ -230,6 +236,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
                 valid_keys = set(keys) & set(account_dict.keys())
                 return {k: v for k, v in account_dict.items() if k in valid_keys}
             return account_dict
+        return await Account.get_and_cache(self.id)
     
 
 class AccountGroups(models.Model):
