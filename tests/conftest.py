@@ -2,18 +2,21 @@ import pytest, random
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
 
+
 from main import get_app
-from app.settings.db import DATABASE_MODELS
+from app.settings.db import DATABASE_MODELS, DATABASE_URL
+from app.auth import Account
+from fixtures import insert_groups, insert_perms, insert_taxos, insert_options, insert_accounts
 
 
 
+app = get_app()
 TEMP_PASSWD = 'pass123'
 
 
 @pytest.fixture
 def passwd():
     return TEMP_PASSWD
-
 
 @pytest.fixture
 def random_word():
@@ -22,11 +25,9 @@ def random_word():
         words = w.read().splitlines()
     return random.choice(words)
 
-
 @pytest.fixture
 def random_int(minimum: int = 0, maximum: int = 120):
     return random.randint(minimum, maximum)
-
 
 @pytest.fixture
 def random_email(random_word):
@@ -34,23 +35,40 @@ def random_email(random_word):
     tld = random.choice(['org', 'com', 'net', 'io', 'com.ph', 'co.uk'])
     return f'{random_word}@{host}.{tld}'
 
-
 @pytest.fixture
 def client():
-    with TestClient(get_app()) as tc:
+    with TestClient(app) as tc:
         yield tc
-
 
 # @pytest.fixture
 # def fixtures():
 #     async def ab():
-#         await init()
-#         await create_options()
-#         user = await create_users()
-#         await create_taxo()
-#         return user
-#
+#         await insert_groups()
+#         await insert_perms()
+#         await insert_taxos()
+#         await insert_options()
+#         _, verified_email = await insert_accounts(verified=2, unverified=2)
+#         verified_account = await Account.get(email=verified_email).only('id', 'email')
+#         return verified_account
 #     yield ab
+#
+@pytest.fixture
+def tempdb():
+    async def tempdb():
+        await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
+        await Tortoise.generate_schemas()
+        # return await fixtures()
+    yield tempdb
+
+# @pytest.fixture
+# async def realdb():
+#     """Sauce: https://github.com/tortoise/tortoise-orm/issues/99"""
+#     await Tortoise.init(db_url=DATABASE_URL, modules={'models': DATABASE_MODELS})
+#     await Tortoise.generate_schemas()
+
+@pytest.fixture
+def loop(client):
+    yield client.task.get_loop()
 
 # @pytest.fixture
 # def trades_fx():
@@ -59,17 +77,7 @@ def client():
 #
 #     yield ab
 
-# @pytest.fixture
-# def tempdb(fixtures):
-#     async def tempdb():
-#         await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
-#         await Tortoise.generate_schemas()
-#         return await fixtures()
-#     yield tempdb
 
-# @pytest.fixture
-# def loop(client):
-#     yield client.task.get_loop()
 
 # @pytest.fixture
 # def auth_headers_tempdb(tempdb, loop):
@@ -96,11 +104,6 @@ def client():
 #     }
 #     yield headers, user, access_token
 
-# @pytest.fixture
-# def loop(client):
-#     yield client.task.get_loop()
-
-
 # def generate_verification_token(usermod: UserDB):
 #     token_data = {
 #         "user_id": str(usermod.id),
@@ -112,3 +115,5 @@ def client():
 #         secret=s.SECRET_KEY_EMAIL,
 #         lifetime_seconds=s.VERIFY_EMAIL_TTL,
 #     )
+
+

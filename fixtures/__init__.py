@@ -84,6 +84,7 @@ async def insert_accounts(*, verified: int, unverified: int):
     total = 0
     superemails = ['super1@gmail.com', 'super2@gmail.com']
     password = 'pass123'
+    verified_email = None
     
     def random_email(words: list):
         word = random.choice(words)
@@ -115,14 +116,12 @@ async def insert_accounts(*, verified: int, unverified: int):
             await create_user(email, password)
             total += 1
         
-        
-        
     except ValidationError as e:
         pass
     except Exception as e:
         ic(e)
         
-    return [f'{total} accounts created.']
+    return [f'{total} accounts created.'], verified_email
 
 
 async def insert_options():
@@ -244,6 +243,7 @@ async def init(
         options: bool = True, traders: bool = True
 ):
     success = []
+    
     if groups:
         # Must come before accounts
         success += await insert_groups()
@@ -253,7 +253,8 @@ async def init(
         # Must come before accounts
         success += await insert_options()
     if accounts:
-        success += await insert_accounts(verified=verified, unverified=unverified)
+        message_list, _ = await insert_accounts(verified=verified, unverified=unverified)
+        success += message_list
     # if traders:
     #     success += await insert_trades()
     return success

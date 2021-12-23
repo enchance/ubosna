@@ -133,7 +133,7 @@ class Trade(SharedMixin, DTBaseModel):
     async def trade(self, trade_data: TradePM, action: ActionChoices):
         """
         Make a new trade with your trading data. You can use this directly but it's recommended to
-        any of the buy/sell class methods instead which are easier.
+        use any of the buy/sell class methods instead which are easier.
         :param trade_data:  TradePM instance
         :param action:      Buy/Sell value via ActionChoices
         :return:            Trade
