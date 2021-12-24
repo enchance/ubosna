@@ -76,6 +76,10 @@ class Base(BaseSettings):
     EMAIL_HOST_USER: str = os.getenv('EMAIL_HOST_USER')
     EMAIL_HOST_PASS: str = os.getenv('EMAIL_HOST_PASS')
     
+    # Option
+    DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+    THEME = 'light'
+    
     # API
     GOOGLE_CLIENT_ID: str = os.getenv('GOOGLE_CLIENT_ID')
     COINMARKETCAP_KEY = os.getenv('COINMARKETCAP_KEY')

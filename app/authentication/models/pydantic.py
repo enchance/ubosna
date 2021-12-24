@@ -25,6 +25,7 @@ class UserCreate(models.BaseUserCreate):
     Data pydantic will take from the form.
     """
     username: Optional[str]
+    
     @validator('password')
     def valid_password(cls, v: str):
         if len(v) < s.PASSWORD_MIN:
