@@ -58,6 +58,7 @@ class UserManager(BaseUserManager[UserCreate, UserDB]):
         account = await setup_account(account, user)
         await account.save(update_fields=['display'])
         await account.add_group(*s.USER_GROUPS)
+        # await account.get_and_cache(account.id)
         
         # Account options
         await setup_account_options(account)

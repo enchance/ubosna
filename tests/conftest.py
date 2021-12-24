@@ -58,20 +58,6 @@ def tempdb(fixtures):
         await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
         await Tortoise.generate_schemas()
         return await fixtures()
-
-        # await insert_groups()
-        # await insert_perms()
-        # await insert_taxos()
-        # await insert_options()
-        # return await insert_accounts(verified=2, unverified=2)
-        
-        # x = await insert_accounts(verified=2, unverified=2)
-        # return x
-        # _, verified_email = await insert_accounts(verified=2, unverified=2)
-        # ic(verified_email)
-        # verified_account = await Account.get(email=verified_email).only('id', 'email')
-        # return verified_account
-        
     yield ab
 
 # @pytest.fixture

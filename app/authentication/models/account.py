@@ -92,6 +92,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             d['options'] = OptionTemplate(**d['options']).dict()
         return d
 
+    # TESTME: Untested
     @classmethod
     async def get_and_cache(cls, id: UUID4, parsed: bool = True):
         """
@@ -127,6 +128,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         except DoesNotExist:
             pass
 
+    # TESTME: Untested
     async def add_group(self, *grouplist) -> Optional[set]:
         """
         Add groups to a user and update redis.
@@ -173,6 +175,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         # red.set(partialkey, cache.prepareuser_dict(user.dict()))
         # return user.groups
 
+    # TESTME: Untested
     async def has_perm(self, perm: str) -> bool:
         """
         Checks if user has a specific perm or is a part of a group.
@@ -207,6 +210,7 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         # ic(permlist)
         return perm in permlist
     
+    # TESTME: Untested
     async def has_group(self, group: str):
         if grouplist := await self.get_cache('groups'):
             pass
@@ -215,17 +219,21 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
             grouplist = account_cache.get('groups', [])
         return group in grouplist
     
-    async def get_groups(self) -> list:
+    async def get_groups(self, *, dev: bool = False) -> list:
         """Get group names assigned to the user. Updates cache if not exists."""
-        if cachedata := await self.get_cache('groups'):
-            return cachedata['groups']
-        grouplist = await Group.filter(groupaccounts=self.id).values_list('name', flat=True)
-        await Account.get_and_cache(self.id)
-        return grouplist or []
+        used_cache = False
+        if grouplist := (await self.get_cache('groups'))['groups']:
+            used_cache = True
+        else:
+            grouplist = await Group.filter(groupaccounts=self).values_list('name', flat=True)
+            await Account.get_and_cache(self.id)
+        return grouplist if not dev else (grouplist, used_cache)
 
+    # TESTME: Untested
     async def update_cache(self):
         pass
-        
+    
+    # TESTME: Untested
     async def get_cache(self, *keys) -> dict:
         """Get specific keys or just get all of them. Assumes cache exists."""
         partialkey = s.CACHE_ACCOUNT.format(self.id)

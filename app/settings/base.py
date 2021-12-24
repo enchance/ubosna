@@ -96,6 +96,7 @@ class Base(BaseSettings):
     #                                               '/n/user-already-verified')
 
     # Others
+    ENABLE_LOCAL_TESTS: bool = os.getenv('ENABLE_LOCAL_TESTS', False)
     PROGRAM_OVERLORDS: str = 'DropkickDev'
     TESTDATA: str = 'This is base data'
     
