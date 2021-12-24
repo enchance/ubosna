@@ -12,10 +12,10 @@ options_dict = {
     },
     # For each user
     'template': {
-        'theme': 'light',
+        'theme': s.THEME,
         'email_notifications': True,
         'show_currency_symbol': True,
-        'date_format': '%Y-%m-%d %H:%M:%S',
+        'date_format': s.DATE_FORMAT,
         
         'access_token': s.ACCESS_TOKEN_EXPIRE,
         'refresh_token': s.REFRESH_TOKEN_EXPIRE,

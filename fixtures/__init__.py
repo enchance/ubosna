@@ -7,7 +7,7 @@ from pydantic import EmailStr, ValidationError
 from .data import *
 from .perms import *
 from app import ic, settings as s, red, cache
-from app.auth import create_user
+from app.auth import create_user, get_user_manager_context, get_user_manager
 from app.authentication.models.account import Account, Group, Perm, GroupPerms
 from app.authentication.models.common import Option, Taxo
 from trades import *
@@ -84,7 +84,8 @@ async def insert_accounts(*, verified: int, unverified: int):
     total = 0
     superemails = ['super1@gmail.com', 'super2@gmail.com']
     password = 'pass123'
-    verified_email = None
+    verified_email = 'verified@gmail.com'
+    verified_account = None
     
     def random_email(words: list):
         word = random.choice(words)
@@ -99,7 +100,8 @@ async def insert_accounts(*, verified: int, unverified: int):
         await Account.filter(email__in=superemails).update(is_verified=True)
         
         # Verified
-        ll = ['verified@gmail.com']
+        verified_account = await create_user(verified_email, password)
+        ll = []
         for _ in range(verified):
             ll.append(random_email(words))
         for email in ll:
@@ -120,8 +122,8 @@ async def insert_accounts(*, verified: int, unverified: int):
         pass
     except Exception as e:
         ic(e)
-        
-    return [f'{total} accounts created.'], verified_email
+    
+    return [f'{total} accounts created.'], verified_account
 
 
 async def insert_options():

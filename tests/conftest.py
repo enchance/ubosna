@@ -1,16 +1,16 @@
 import pytest, random
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
-
+from asyncio import get_event_loop
 
 from main import get_app
+from app import ic
 from app.settings.db import DATABASE_MODELS, DATABASE_URL
 from app.auth import Account
 from fixtures import insert_groups, insert_perms, insert_taxos, insert_options, insert_accounts
 
 
 
-app = get_app()
 TEMP_PASSWD = 'pass123'
 
 
@@ -37,28 +37,42 @@ def random_email(random_word):
 
 @pytest.fixture
 def client():
-    with TestClient(app) as tc:
+    with TestClient(get_app()) as tc:
         yield tc
 
-# @pytest.fixture
-# def fixtures():
-#     async def ab():
-#         await insert_groups()
-#         await insert_perms()
-#         await insert_taxos()
-#         await insert_options()
-#         _, verified_email = await insert_accounts(verified=2, unverified=2)
-#         verified_account = await Account.get(email=verified_email).only('id', 'email')
-#         return verified_account
-#     yield ab
-#
 @pytest.fixture
-def tempdb():
-    async def tempdb():
+def fixtures():
+    async def ab():
+        await insert_groups()
+        await insert_perms()
+        await insert_taxos()
+        await insert_options()
+        _, verified_email = await insert_accounts(verified=2, unverified=2)
+        verified_account = await Account.get(email=verified_email).only('id', 'email')
+        return verified_account
+    yield ab
+
+@pytest.fixture
+def tempdb(fixtures):
+    async def ab():
         await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
         await Tortoise.generate_schemas()
-        # return await fixtures()
-    yield tempdb
+        return await fixtures()
+
+        # await insert_groups()
+        # await insert_perms()
+        # await insert_taxos()
+        # await insert_options()
+        # return await insert_accounts(verified=2, unverified=2)
+        
+        # x = await insert_accounts(verified=2, unverified=2)
+        # return x
+        # _, verified_email = await insert_accounts(verified=2, unverified=2)
+        # ic(verified_email)
+        # verified_account = await Account.get(email=verified_email).only('id', 'email')
+        # return verified_account
+        
+    yield ab
 
 # @pytest.fixture
 # async def realdb():
@@ -67,8 +81,9 @@ def tempdb():
 #     await Tortoise.generate_schemas()
 
 @pytest.fixture
-def loop(client):
-    yield client.task.get_loop()
+def loop():
+    # yield client.task.get_loop()
+    yield get_event_loop()
 
 # @pytest.fixture
 # def trades_fx():
