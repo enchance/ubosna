@@ -227,24 +227,28 @@ class Account(SharedMixin, DTBaseModel, TortoiseBaseUserModel):
         else:
             grouplist = await Group.filter(groupaccounts=self).values_list('name', flat=True)
             await Account.get_and_cache(self.id)
-        return grouplist if not dev else (grouplist, used_cache)
+        return dev and (grouplist, used_cache) or grouplist
 
     # TESTME: Untested
     async def update_cache(self):
         pass
     
     # TESTME: Untested
-    async def get_cache(self, *keys) -> dict:
+    async def get_cache(self, *keys, dev: bool = False) -> dict:
         """Get specific keys or just get all of them. Assumes cache exists."""
+        used_cache = False
         partialkey = s.CACHE_ACCOUNT.format(self.id)
         if red.exists(partialkey):
+            used_cache = True
             account_dict = red.get(partialkey)
             account_dict = cache.restoreuser_dict(account_dict)
             if keys:
                 valid_keys = set(keys) & set(account_dict.keys())
                 return {k: v for k, v in account_dict.items() if k in valid_keys}
-            return account_dict
-        return await Account.get_and_cache(self.id)
+            return dev and (account_dict, used_cache) or account_dict
+        
+        d = await Account.get_and_cache(self.id)
+        return dev and (d, used_cache) or d
     
 
 class AccountGroups(models.Model):

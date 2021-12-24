@@ -1,12 +1,14 @@
 import pytest, random
 from fastapi.testclient import TestClient
 from tortoise import Tortoise
+from tortoise.query_utils import Prefetch
 from asyncio import get_event_loop
 
 from main import get_app
-from app import ic
+from app import ic, settings as s
+from app.auth import Account, Group, Perm, Option
 from app.settings.db import DATABASE_MODELS, DATABASE_URL
-from app.auth import Account
+from trades import Broker
 from fixtures import insert_groups, insert_perms, insert_taxos, insert_options, insert_accounts
 
 
@@ -40,7 +42,8 @@ def client():
     with TestClient(get_app()) as tc:
         yield tc
 
-@pytest.fixture
+
+@pytest.fixture(scope='session')
 def fixtures():
     async def ab():
         await insert_groups()
@@ -52,32 +55,37 @@ def fixtures():
         return verified_account
     yield ab
 
-@pytest.fixture
-def tempdb(fixtures):
-    async def ab():
-        await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
-        await Tortoise.generate_schemas()
-        return await fixtures()
-    yield ab
 
-# @pytest.fixture
-# async def realdb():
-#     """Sauce: https://github.com/tortoise/tortoise-orm/issues/99"""
-#     await Tortoise.init(db_url=DATABASE_URL, modules={'models': DATABASE_MODELS})
-#     await Tortoise.generate_schemas()
-
-@pytest.fixture
+@pytest.fixture(scope='session')
 def loop():
-    # yield client.task.get_loop()
     yield get_event_loop()
 
-# @pytest.fixture
-# def trades_fx():
-#     async def ab():
-#         await trades_init()
-#
-#     yield ab
 
+@pytest.fixture(scope='session')
+def db(fixtures):
+    async def ab():
+        if s.USE_TEMPDB:
+            await Tortoise.init(db_url="sqlite://:memory:", modules={"models": DATABASE_MODELS})
+        else:
+            await Tortoise.init(db_url=DATABASE_URL, modules={'models': DATABASE_MODELS})
+        await Tortoise.generate_schemas()
+        await fixtures()
+    yield ab
+    
+
+@pytest.fixture(scope="class")
+def accounts(request, loop, db):
+    async def ab():
+        await db()
+        request.cls.accounts = await Account.all().prefetch_related(
+            # Only supports `only()` when prefetching
+            Prefetch('accountoptions', queryset=Option.all().only('account_id', 'name'),
+                     to_attr='options'),
+            Prefetch('groups', queryset=Group.all().only('id', 'name')),
+            Prefetch('perms', queryset=Perm.all().only('id', 'code')),
+            Prefetch('brokers', queryset=Broker.all().only('id', 'name')),
+        )
+    loop.run_until_complete(ab())
 
 
 # @pytest.fixture

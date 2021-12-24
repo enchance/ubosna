@@ -95,8 +95,11 @@ class Base(BaseSettings):
     # NOTICE_USER_ALREADY_VERIFIED: str = os.getenv('NOTICE_USER_ALREADY_VERIFIED',
     #                                               '/n/user-already-verified')
 
-    # Others
+    # Testing
     ENABLE_LOCAL_TESTS: bool = os.getenv('ENABLE_LOCAL_TESTS', False)
+    USE_TEMPDB: bool = os.getenv('USE_TEMPDB', False)
+    
+    # Others
     PROGRAM_OVERLORDS: str = 'DropkickDev'
     TESTDATA: str = 'This is base data'
     
